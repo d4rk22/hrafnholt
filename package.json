@@ -1,0 +1,42 @@
+{
+  "name": "ravenhill-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d4rk22/ravenhill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/d4rk22/ravenhill/issues"
+  },
+  "homepage": "https://github.com/d4rk22/ravenhill#readme",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "audit": "npm audit --audit-level=high",
+    "build": "tsc -p tsconfig.json",
+    "check": "npm run audit && npm run lint && npm test && npm run build && npm run check:browser",
+    "check:browser": "node --check public/app.js && node --check public/map-viewport.js && node --check public/privacy-mode.js",
+    "generate:world-map": "node scripts/generate-world-map.mjs",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "test": "node --import tsx --test test/*.test.ts test/**/*.test.ts"
+  },
+  "dependencies": {
+    "@fastify/static": "10.1.3",
+    "fastify": "5.11.3",
+    "net-snmp": "3.26.3",
+    "undici": "8.10.0",
+    "yaml": "2.9.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/net-snmp": "3.23.0",
+    "@types/node": "26.2.0",
+    "tsx": "4.23.11",
+    "typescript": "7.0.2"
+  }
+}

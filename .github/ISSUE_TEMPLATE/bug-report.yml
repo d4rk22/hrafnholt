@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a reproducible Ravenhill defect using synthetic evidence.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, private endpoints, production responses, or personal screenshots.
+  - type: input
+    id: version
+    attributes:
+      label: Ravenhill version or revision
+      placeholder: v0.1.0 or a full commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Dashboard service
+        - Browser application
+        - Energy sidecar
+        - Container or release workflow
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+      description: Use only synthetic or redacted evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Synthetic reproduction
+      description: Provide the smallest safe sequence and configuration fragment.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I removed credentials, private endpoints, production data, and personal screenshots.
+          required: true
+        - label: This is not a security vulnerability requiring private reporting.
+          required: true

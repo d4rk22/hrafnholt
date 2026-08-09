@@ -1,0 +1,77 @@
+schema_version: 1
+mode: demo
+
+demo:
+  # healthy | empty | stale | degraded | collector-failure | privacy
+  state: healthy
+
+server:
+  host: 0.0.0.0
+  port: 3000
+  log_level: info
+
+presentation:
+  branding:
+    title: Ravenhill
+    subtitle: Portable operations dashboard
+    home_label: Home
+  locale: en-US
+  timezone: UTC
+  home: null
+  privacy:
+    default_mode: public
+    allow_private_toggle: false
+  units:
+    temperature: celsius
+
+# Configuration presence enables a collector. Demo mode intentionally requires
+# an empty list, so it starts without credentials or network access.
+collectors: []
+
+# For live mode, replace the empty list with any valid subset. Repeatable media
+# and download collectors use arbitrary IDs and presentation names, for example:
+# collectors:
+#   - type: sonarr
+#     id: television
+#     name: Television
+#     url: https://sonarr.example
+#     api_key_ref: MEDIA_API_KEY
+#     poll_interval_seconds: 60
+#     timeout_seconds: 5
+#     stale_after_seconds: 300
+#     tls_verify: true
+#   - type: sonarr
+#     id: animation
+#     name: Animation
+#     url: https://animation.example
+#     api_key_ref: ANIMATION_API_KEY
+#   - type: qbittorrent
+#     id: downloads
+#     name: Downloads
+#     url: https://downloads.example
+#     username_ref: MEDIA_USERNAME
+#     password_ref: MEDIA_PASSWORD
+
+# The energy sidecar reads only this section and resolves only these two
+# service-scoped secret references. It is not started by dashboard demo mode.
+energy:
+  provider: emporia
+  username_ref: ENERGY_USERNAME
+  password_ref: ENERGY_PASSWORD
+  device_id: 12345
+  channels:
+    server: "1"
+    climate: "2"
+    mains: "1,2,3"
+  rates:
+    currency: USD
+    tax_rate: 0.05
+    fixed_monthly: 10.00
+    seasons:
+      - name: cool
+        months: [1, 2, 3, 4, 5, 10, 11, 12]
+        price_per_kwh: 0.10
+      - name: warm
+        months: [6, 7, 8, 9]
+        price_per_kwh: 0.20
+  cache_ttl_seconds: 60

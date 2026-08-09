@@ -1,0 +1,306 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2030-01-15T12:00:00.000Z",
+  "mode": "fixture",
+  "demoState": "healthy",
+  "panels": {
+    "streams": {
+      "status": "ok",
+      "source": "Synthetic stream fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 30,
+      "message": null,
+      "data": {
+        "total": 3,
+        "transcodes": 1,
+        "totalBitrateMbps": 24,
+        "streams": [
+          {
+            "id": "demo-stream-a",
+            "user": "demo-viewer-alpha",
+            "title": "Signal at Dawn",
+            "context": "S01E02 · Second Signal",
+            "progressPercent": 64,
+            "playbackMode": "direct",
+            "transcodeMode": "none",
+            "playbackLabel": "Direct play · 1080p",
+            "bitrateMbps": 12,
+            "platform": "Demo player",
+            "location": {"label": "North Haven · QA · ZZ", "countryCode": "ZZ", "latitude": 35, "longitude": -30}
+          },
+          {
+            "id": "demo-stream-b",
+            "user": "demo-viewer-beta",
+            "title": "Harbor Lights",
+            "context": "Synthetic feature",
+            "progressPercent": 38,
+            "playbackMode": "transcode",
+            "transcodeMode": "hardware",
+            "playbackLabel": "Hardware transcode · 720p",
+            "bitrateMbps": 7,
+            "platform": "Demo tablet",
+            "location": {"label": "West Quay · QB · ZZ", "countryCode": "ZZ", "latitude": 15, "longitude": 40}
+          },
+          {
+            "id": "demo-stream-c",
+            "user": "demo-viewer-gamma",
+            "title": "The Quiet Circuit",
+            "context": "S02E04 · Safe Defaults",
+            "progressPercent": 22,
+            "playbackMode": "direct",
+            "transcodeMode": "none",
+            "playbackLabel": "Direct play · 1080p",
+            "bitrateMbps": 5,
+            "platform": "Demo browser",
+            "location": {"label": "South Point · QC · ZZ", "countryCode": "ZZ", "latitude": -25, "longitude": 95}
+          }
+        ]
+      }
+    },
+    "bandwidth": {
+      "status": "ok",
+      "source": "Synthetic traffic fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 30,
+      "message": null,
+      "data": {
+        "downloadMbps": 84,
+        "uploadMbps": 18,
+        "samples": [
+          {"sampledAt": "2030-01-15T11:59:45.000Z", "downloadMbps": 40, "uploadMbps": 10},
+          {"sampledAt": "2030-01-15T11:59:50.000Z", "downloadMbps": 52, "uploadMbps": 12},
+          {"sampledAt": "2030-01-15T11:59:55.000Z", "downloadMbps": 61, "uploadMbps": 15},
+          {"sampledAt": "2030-01-15T12:00:00.000Z", "downloadMbps": 84, "uploadMbps": 18}
+        ]
+      }
+    },
+    "plexHost": {
+      "status": "ok",
+      "source": "Synthetic compute fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 60,
+      "message": null,
+      "data": {
+        "host": "Demo compute target",
+        "gpuName": "Example accelerator",
+        "gpuTensorCores": 48,
+        "cpuCores": 12,
+        "gpuPercent": 34,
+        "encodePercent": 28,
+        "decodePercent": 11,
+        "vramUsedBytes": 2147483648,
+        "vramTotalBytes": 8589934592,
+        "temperatureC": 54,
+        "powerWatts": 72,
+        "cpuPercent": 29,
+        "ramUsedBytes": 6442450944,
+        "ramTotalBytes": 25769803776,
+        "hardwareSessions": 1,
+        "history": {
+          "requestedWindowSeconds": 604800,
+          "sampledFrom": "2030-01-08T12:00:00.000Z",
+          "sampledTo": "2030-01-15T12:00:00.000Z",
+          "bucketSeconds": 21600,
+          "analysisSamples": 29,
+          "points": [
+            {"sampledAt": "2030-01-08T12:00:00.000Z", "encodePercent": 12, "decodePercent": 4, "cpuPercent": 18, "ramPercent": 23, "vramPercent": 20, "temperatureC": 47, "streamAverage": 1, "streamPeak": 2, "videoTranscodeAverage": 0.2, "videoTranscodePeak": 1},
+            {"sampledAt": "2030-01-10T12:00:00.000Z", "encodePercent": 24, "decodePercent": 9, "cpuPercent": 26, "ramPercent": 27, "vramPercent": 31, "temperatureC": 52, "streamAverage": 1.5, "streamPeak": 3, "videoTranscodeAverage": 0.6, "videoTranscodePeak": 1},
+            {"sampledAt": "2030-01-12T12:00:00.000Z", "encodePercent": 39, "decodePercent": 14, "cpuPercent": 33, "ramPercent": 32, "vramPercent": 38, "temperatureC": 58, "streamAverage": 2.2, "streamPeak": 4, "videoTranscodeAverage": 0.8, "videoTranscodePeak": 2},
+            {"sampledAt": "2030-01-15T12:00:00.000Z", "encodePercent": 28, "decodePercent": 11, "cpuPercent": 29, "ramPercent": 25, "vramPercent": 25, "temperatureC": 54, "streamAverage": 1.7, "streamPeak": 3, "videoTranscodeAverage": 0.4, "videoTranscodePeak": 1}
+          ],
+          "summary": {"encodeP95Percent": 39, "decodeP95Percent": 14, "cpuP95Percent": 33, "ramPeakPercent": 32, "vramPeakPercent": 38, "temperaturePeakC": 58, "pressure": "comfortable", "constraint": null}
+        }
+      }
+    },
+    "power": {
+      "status": "ok",
+      "source": "Synthetic energy fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 180,
+      "message": null,
+      "data": {"serverWatts": 640, "acWatts": 210, "houseWatts": 2400, "totalWatts": 850, "serverTodayKwh": 4.2, "acTodayKwh": 1.4, "todayKwh": 5.6, "houseTodayKwh": 15.8, "serverMonthKwh": 72, "acMonthKwh": 24, "monthKwh": 96, "houseMonthKwh": 280, "projectedKwh": 192, "projectedHouseKwh": 560, "monthCost": 14.4, "projectedCost": 28.8, "projectedHouseCost": 84, "rate": 0.15, "rateLabel": "synthetic flat rate", "daysInMonth": 31, "serverPercentOfHouse": 35}
+    },
+    "rackPower": {
+      "status": "ok",
+      "source": "Synthetic PDU fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 120,
+      "message": null,
+      "data": {
+        "deviceName": "Demo rack PDU",
+        "currentWatts": 640,
+        "rolling24hAverageWatts": 600,
+        "rolling24hSampleMinutes": 1440,
+        "capacityWatts": 1600,
+        "voltage": 120,
+        "meteredOutlets": 6,
+        "outlets": [
+          {"index": 1, "name": "Compute unit A", "watts": 220, "currentAmps": 1.84, "powerFactor": 0.99, "relayOn": true},
+          {"index": 2, "name": "Compute unit B", "watts": 160, "currentAmps": 1.35, "powerFactor": 0.98, "relayOn": true},
+          {"index": 3, "name": "Storage unit", "watts": 110, "currentAmps": 0.94, "powerFactor": 0.97, "relayOn": true},
+          {"index": 4, "name": "Network unit", "watts": 70, "currentAmps": 0.61, "powerFactor": 0.96, "relayOn": true},
+          {"index": 5, "name": "Lab unit", "watts": 50, "currentAmps": 0.45, "powerFactor": 0.93, "relayOn": true},
+          {"index": 6, "name": "Spare outlet", "watts": 30, "currentAmps": 0.29, "powerFactor": 0.87, "relayOn": true}
+        ]
+      }
+    },
+    "ups": {
+      "status": "ok",
+      "source": "Synthetic battery fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 60,
+      "message": null,
+      "data": {"batteryStatus": "normal", "secondsOnBattery": 0, "runtimeMinutes": 42, "chargePercent": 98, "loadPercent": 40}
+    },
+    "sabQueues": {
+      "status": "ok",
+      "source": "Synthetic download fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 30,
+      "message": null,
+      "data": {"instances": [
+        {"name": "Demo downloads", "client": "sabnzbd", "library": "synthetic television", "paused": false, "speedBytesPerSecond": 12000000, "timeLeftSeconds": 420, "items": [
+          {"name": "Signal.At.Dawn.S01E03.demo", "remainingBytes": 4200000000, "progressPercent": 62, "status": "Downloading"},
+          {"name": "Harbor.Lights.demo", "remainingBytes": 1600000000, "progressPercent": 18, "status": "Queued"}
+        ]}
+      ]}
+    },
+    "episodes": {
+      "status": "ok",
+      "source": "Synthetic calendar fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 300,
+      "message": null,
+      "data": {"localDate": "2030-01-15", "episodes": [
+        {"id": "demo-episode-a", "library": "Demo television", "show": "Signal at Dawn", "context": "S01E03 · Third Signal", "airAt": "2030-01-15T18:00:00.000Z", "quality": "WEB-1080p", "state": "waiting"},
+        {"id": "demo-episode-b", "library": "Demo animation", "show": "The Quiet Circuit", "context": "S02E05 · Bounded Input", "airAt": "2030-01-15T20:00:00.000Z", "quality": "WEB-720p", "state": "grabbed"}
+      ]}
+    },
+    "movies": {
+      "status": "ok",
+      "source": "Synthetic movie fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 300,
+      "message": null,
+      "data": {"movies": [
+        {"id": "demo-movie-a", "library": "Demo cinema", "title": "Harbor Lights", "year": 2030, "addedAt": "2030-01-15T10:00:00.000Z", "hasFile": true, "format": "1080p", "posterUrl": null},
+        {"id": "demo-movie-b", "library": "Demo archive", "title": "Northbound", "year": 2029, "addedAt": "2030-01-14T16:00:00.000Z", "hasFile": true, "format": "4K", "posterUrl": null},
+        {"id": "demo-movie-c", "library": "Demo cinema", "title": "The Quiet Circuit", "year": 2028, "addedAt": "2030-01-13T09:00:00.000Z", "hasFile": false, "format": "Wanted", "posterUrl": null}
+      ]}
+    },
+    "arcane": {
+      "status": "ok",
+      "source": "Synthetic container fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 60,
+      "message": null,
+      "data": {"total": 4, "running": 4, "environments": [
+        {"id": "demo-runtime", "name": "Demo runtime", "status": "online", "connected": true, "containers": [
+          {"name": "ravenhill-demo", "state": "running", "status": "Synthetic healthy"},
+          {"name": "demo-collector-a", "state": "running", "status": "Synthetic healthy"},
+          {"name": "demo-collector-b", "state": "running", "status": "Synthetic healthy"},
+          {"name": "demo-cache", "state": "running", "status": "Synthetic healthy"}
+        ]}
+      ]}
+    },
+    "proxmox": {
+      "status": "ok",
+      "source": "Synthetic compute inventory",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 120,
+      "message": null,
+      "data": {"totalMemoryBytes": 51539607552, "nodes": [
+        {"name": "demo-node-a", "role": "synthetic compute", "cpuModel": "Example CPU", "status": "online", "cpuPercent": 29, "memoryUsedBytes": 12884901888, "memoryTotalBytes": 25769803776, "storageUsedBytes": 400000000000, "storageTotalBytes": 1000000000000, "guests": 4},
+        {"name": "demo-node-b", "role": "synthetic services", "cpuModel": "Example CPU", "status": "online", "cpuPercent": 18, "memoryUsedBytes": 8589934592, "memoryTotalBytes": 25769803776, "storageUsedBytes": 250000000000, "storageTotalBytes": 1000000000000, "guests": 3}
+      ]}
+    },
+    "truenasStorage": {
+      "status": "ok",
+      "source": "Synthetic storage fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 300,
+      "message": null,
+      "data": {"serverName": "Demo storage", "health": "online", "usedBytes": 6000000000000, "availableBytes": 4000000000000, "totalBytes": 10000000000000, "poolsOnline": 1, "poolsTotal": 1}
+    },
+    "backups": {
+      "status": "ok",
+      "source": "Synthetic protection fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 1200,
+      "message": null,
+      "data": {
+        "pbs": {
+          "serverName": "Demo backup target",
+          "status": "online",
+          "datastores": [
+            {"name": "primary-demo", "status": "online", "usedBytes": 3000000000000, "availableBytes": 2000000000000, "totalBytes": 5000000000000, "restorePoints": 48},
+            {"name": "archive-demo", "status": "online", "usedBytes": 5000000000000, "availableBytes": 3000000000000, "totalBytes": 8000000000000, "restorePoints": 32}
+          ],
+          "protectedGuests": 7,
+          "verifiedSnapshots": 80,
+          "verificationTotal": 80,
+          "lastVerificationAt": "2030-01-15T08:00:00.000Z",
+          "verificationResult": "success",
+          "lastGarbageCollectionAt": "2030-01-14T06:00:00.000Z",
+          "garbageCollectionResult": "success",
+          "reclaimedBytes": 64000000000
+        },
+        "jobs": [
+          {"id": "demo-backup-job", "name": "Synthetic guest backup", "detail": "7 demo guests", "source": "Synthetic scheduler", "result": "success", "lastRunAt": "2030-01-15T09:00:00.000Z", "durationSeconds": 900, "transferredBytes": 24000000000, "message": null}
+        ]
+      }
+    },
+    "servicePosture": {
+      "status": "ok",
+      "source": "Synthetic monitor fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 60,
+      "message": null,
+      "data": {"healthy": 5, "down": 0, "monitors": [
+        {"id": "demo-monitor-a", "name": "Demo front door", "status": "up", "pingMs": 18, "observedAt": "2030-01-15T12:00:00.000Z"},
+        {"id": "demo-monitor-b", "name": "Demo worker", "status": "up", "pingMs": 24, "observedAt": "2030-01-15T12:00:00.000Z"},
+        {"id": "demo-monitor-c", "name": "Demo storage", "status": "up", "pingMs": 12, "observedAt": "2030-01-15T12:00:00.000Z"},
+        {"id": "demo-monitor-d", "name": "Demo calendar", "status": "up", "pingMs": 21, "observedAt": "2030-01-15T12:00:00.000Z"},
+        {"id": "demo-monitor-e", "name": "Demo protection", "status": "up", "pingMs": 16, "observedAt": "2030-01-15T12:00:00.000Z"}
+      ]}
+    },
+    "watchlist": {
+      "status": "ok",
+      "source": "Synthetic derived fixture",
+      "lastAttemptAt": "2030-01-15T12:00:00.000Z",
+      "lastSuccessAt": "2030-01-15T12:00:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 60,
+      "message": null,
+      "data": {"items": []}
+    }
+  }
+}

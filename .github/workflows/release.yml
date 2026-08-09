@@ -1,0 +1,104 @@
+name: Release images
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.repository == 'd4rk22/ravenhill'
+    uses: ./.github/workflows/ci.yml
+
+  release-metadata:
+    name: Release / metadata
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out complete source history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Require immutable release inputs
+        run: |
+          if ! printf '%s' "$GITHUB_REF_NAME" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo 'Release tag must be an exact vMAJOR.MINOR.PATCH version.' >&2
+            exit 1
+          fi
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          version="${GITHUB_REF_NAME#v}"
+          node -e "const packageDocument=require('./package.json'); if (packageDocument.version !== process.argv[1]) process.exit(1)" "$version"
+          grep -F "## [$version]" CHANGELOG.md
+
+  publish:
+    name: Release / ${{ matrix.component }}
+    needs:
+      - validate
+      - release-metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: dashboard
+            context: .
+            title: Ravenhill dashboard
+          - component: energy
+            context: ./energy
+            title: Ravenhill energy sidecar
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Authenticate to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate immutable image metadata
+        id: metadata
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        with:
+          images: ghcr.io/d4rk22/ravenhill-${{ matrix.component }}
+          flavor: latest=false
+          tags: |
+            type=ref,event=tag
+            type=sha,prefix=sha-,format=long
+          labels: |
+            org.opencontainers.image.title=${{ matrix.title }}
+            org.opencontainers.image.licenses=Apache-2.0
+      - name: Build and push image, SBOM, and provenance
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          build-args: |
+            RAVENHILL_VERSION=${{ github.ref_name }}
+            RAVENHILL_REVISION=${{ github.sha }}
+            RAVENHILL_SOURCE=https://github.com/${{ github.repository }}
+          sbom: true
+          provenance: mode=max
+      - name: Attest the published digest
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-name: ghcr.io/d4rk22/ravenhill-${{ matrix.component }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - name: Record immutable digest
+        run: printf '%s@%s\n' 'ghcr.io/d4rk22/ravenhill-${{ matrix.component }}' '${{ steps.build.outputs.digest }}' >> "$GITHUB_STEP_SUMMARY"

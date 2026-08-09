@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: Node / quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Use Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Audit, type-check, test, build, and syntax-check
+        run: npm run check
+
+  python:
+    name: Python / quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Use Python 3.12
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: 3.12.13
+          cache: pip
+          cache-dependency-path: energy/requirements.txt
+      - name: Install locked runtime dependencies and audit tool
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            --requirement energy/requirements.txt \
+            pip-audit==2.10.1
+      - name: Audit Python dependencies
+        run: python -m pip_audit --requirement energy/requirements.txt
+      - name: Test and compile energy sidecar
+        run: |
+          python -m unittest discover -s energy -p 'test_*.py'
+          python -m py_compile energy/app.py energy/test_energy.py
+
+  containers:
+    name: Containers / build-and-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Build local images with release identity
+        run: |
+          docker build \
+            --build-arg RAVENHILL_VERSION=0.0.0-ci \
+            --build-arg RAVENHILL_REVISION="$GITHUB_SHA" \
+            --build-arg RAVENHILL_SOURCE="https://github.com/$GITHUB_REPOSITORY" \
+            --tag ravenhill-dashboard:ci \
+            .
+          docker build \
+            --build-arg RAVENHILL_VERSION=0.0.0-ci \
+            --build-arg RAVENHILL_REVISION="$GITHUB_SHA" \
+            --build-arg RAVENHILL_SOURCE="https://github.com/$GITHUB_REPOSITORY" \
+            --tag ravenhill-energy:ci \
+            ./energy
+      - name: Verify image identity and license payloads
+        run: |
+          for image in ravenhill-dashboard:ci ravenhill-energy:ci; do
+            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image")" = "$GITHUB_SHA"
+            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.source" }}' "$image")" = "https://github.com/$GITHUB_REPOSITORY"
+            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.licenses" }}' "$image")" = "Apache-2.0"
+            docker run --rm --entrypoint sh "$image" -c 'test -s /usr/share/licenses/ravenhill/LICENSE && test -s /usr/share/licenses/ravenhill/NOTICE'
+          done
+      - name: Start hardened network-isolated containers
+        run: |
+          docker run --detach \
+            --name ravenhill-dashboard-ci \
+            --network none \
+            --read-only \
+            --tmpfs /var/lib/ravenhill:rw,noexec,nosuid,size=16m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            ravenhill-dashboard:ci
+          docker run --detach \
+            --name ravenhill-energy-ci \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --volume "$PWD/ravenhill.example.yml:/etc/ravenhill/ravenhill.yml:ro" \
+            --env ENERGY_USERNAME=synthetic-ci-user \
+            --env ENERGY_PASSWORD=synthetic-ci-password \
+            ravenhill-energy:ci
+      - name: Require healthy, restart-zero services and synthetic APIs
+        run: |
+          for container in ravenhill-dashboard-ci ravenhill-energy-ci; do
+            for _attempt in $(seq 1 30); do
+              status="$(docker inspect --format '{{.State.Health.Status}}' "$container")"
+              if [ "$status" = healthy ]; then break; fi
+              if [ "$status" = unhealthy ]; then docker logs "$container"; exit 1; fi
+              sleep 2
+            done
+            test "$(docker inspect --format '{{.State.Health.Status}}' "$container")" = healthy
+            test "$(docker inspect --format '{{.RestartCount}}' "$container")" = 0
+          done
+          docker exec ravenhill-dashboard-ci node -e \
+            "Promise.all(['/health/live','/health/ready','/api/v1/dashboard'].map(path => fetch('http://127.0.0.1:3000' + path))).then(responses => { if (responses.some(response => !response.ok)) process.exit(1) }).catch(() => process.exit(1))"
+          docker exec ravenhill-energy-ci python -c \
+            "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"
+      - name: Preserve container evidence on failure
+        if: failure()
+        run: |
+          docker inspect ravenhill-dashboard-ci ravenhill-energy-ci || true
+          docker logs ravenhill-dashboard-ci || true
+          docker logs ravenhill-energy-ci || true
+      - name: Remove validation containers
+        if: always()
+        run: docker rm --force ravenhill-dashboard-ci ravenhill-energy-ci >/dev/null 2>&1 || true
