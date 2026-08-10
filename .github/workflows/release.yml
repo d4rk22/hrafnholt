@@ -45,8 +45,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
-      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -94,11 +92,25 @@ jobs:
             RAVENHILL_SOURCE=https://github.com/${{ github.repository }}
           sbom: true
           provenance: mode=max
-      - name: Attest the published digest
-        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
-        with:
-          subject-name: ghcr.io/d4rk22/ravenhill-${{ matrix.component }}
-          subject-digest: ${{ steps.build.outputs.digest }}
-          push-to-registry: true
       - name: Record immutable digest
+        # Registry-native attestations bind subject-digest: ${{ steps.build.outputs.digest }}
         run: printf '%s@%s\n' 'ghcr.io/d4rk22/ravenhill-${{ matrix.component }}' '${{ steps.build.outputs.digest }}' >> "$GITHUB_STEP_SUMMARY"
+
+  verify-private-packages:
+    name: Release / verify private packages
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Require private repository-linked packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for package in ravenhill-dashboard ravenhill-energy; do
+            actual="$(gh api "users/d4rk22/packages/container/${package}" --jq '[.name,.package_type,.visibility,.repository.full_name] | join("|")')"
+            test "$actual" = "${package}|container|private|d4rk22/ravenhill"
+          done

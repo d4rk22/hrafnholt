@@ -75,9 +75,11 @@ The workflow publishes two independently identified images:
 - `ghcr.io/d4rk22/ravenhill-dashboard`; and
 - `ghcr.io/d4rk22/ravenhill-energy`.
 
-Each image receives the immutable version tag and `sha-<full-commit>` tag,
-BuildKit SBOM and maximum-mode provenance attestations, a GitHub build
-provenance attestation, OCI identity labels, and a registry digest. No floating
+For the private `v0.1.0` release, each image receives the immutable version tag
+and `sha-<full-commit>` tag, registry-native BuildKit SBOM and maximum-mode
+provenance attestations, OCI identity labels, and a registry digest. GitHub
+artifact attestations are deferred until Ravenhill is public or read-only
+evidence proves eligibility through GitHub Enterprise Cloud. No floating
 `latest` tag is produced. Deployments use the accepted digest, not a tag.
 
 The dashboard and energy build contexts each carry the Apache license and
