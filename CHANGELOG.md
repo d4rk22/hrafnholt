@@ -5,6 +5,8 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.0] - 2026-08-09
+
 ### Added
 
 - Apache License 2.0 licensing and project notice.
