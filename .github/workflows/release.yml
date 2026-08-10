@@ -111,6 +111,6 @@ jobs:
         run: |
           set -euo pipefail
           for package in ravenhill-dashboard ravenhill-energy; do
-            actual="$(gh api "users/d4rk22/packages/container/${package}" --jq '[.name,.package_type,.visibility,.repository.full_name] | join("|")')"
+            actual="$(gh api "user/packages/container/${package}" --jq '[.name,.package_type,.visibility,.repository.full_name] | join("|")')"
             test "$actual" = "${package}|container|private|d4rk22/ravenhill"
           done

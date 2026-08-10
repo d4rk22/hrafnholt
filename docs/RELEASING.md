@@ -75,8 +75,8 @@ The workflow publishes two independently identified images:
 - `ghcr.io/d4rk22/ravenhill-dashboard`; and
 - `ghcr.io/d4rk22/ravenhill-energy`.
 
-For the private `v0.1.0` release, each image receives the immutable version tag
-and `sha-<full-commit>` tag, registry-native BuildKit SBOM and maximum-mode
+For each private release, every image receives the immutable version tag and
+`sha-<full-commit>` tag, registry-native BuildKit SBOM and maximum-mode
 provenance attestations, OCI identity labels, and a registry digest. GitHub
 artifact attestations are deferred until Ravenhill is public or read-only
 evidence proves eligibility through GitHub Enterprise Cloud. No floating
