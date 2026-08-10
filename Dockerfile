@@ -9,7 +9,7 @@ RUN npm run build
 
 FROM node:24-alpine AS runtime
 
-ARG RAVENHILL_VERSION=0.1.0-dev
+ARG RAVENHILL_VERSION=0.1.1-dev
 ARG RAVENHILL_REVISION=unknown
 ARG RAVENHILL_SOURCE=https://github.com/d4rk22/ravenhill
 LABEL org.opencontainers.image.title="Ravenhill dashboard" \

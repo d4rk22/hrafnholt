@@ -5,6 +5,13 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.1] - 2026-08-10
+
+### Fixed
+
+- Use the authenticated-user GitHub Packages REST endpoint when verifying
+  private user-scoped release packages.
+
 ## [0.1.0] - 2026-08-09
 
 ### Added
