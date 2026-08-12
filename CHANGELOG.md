@@ -5,6 +5,14 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.2] - 2026-08-12
+
+### Added
+
+- Report only an allowlisted, fixed energy collection failure stage with HTTP
+  503 responses while preserving the successful response contract and the
+  existing bounded provider-call sequence.
+
 ## [0.1.1] - 2026-08-10
 
 ### Fixed
