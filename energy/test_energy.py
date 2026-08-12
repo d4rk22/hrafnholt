@@ -1,7 +1,21 @@
 import unittest
 from datetime import datetime
+from types import SimpleNamespace
+from unittest import mock
 
-from app import ConfigurationError, EnergyConfig, SeasonRate, calculate_energy, load_energy_config
+import app as energy_app
+from app import (
+    ConfigurationError,
+    EnergyConfig,
+    EnergyFailureStage,
+    EnergyRuntime,
+    SeasonRate,
+    build_energy_runtime,
+    calculate_energy,
+    energy_response,
+    fetch_usage,
+    load_energy_config,
+)
 
 
 SYNTHETIC_CONFIG = EnergyConfig(
@@ -47,6 +61,72 @@ energy:
         months: [6, 7, 8, 9]
         price_per_kwh: 0.20
 """
+
+SCALE_VALUES = {
+    "SECOND": "second",
+    "DAY": "day",
+    "MONTH": "month",
+    "KWH": "kwh",
+}
+
+
+def usage_response(
+    *,
+    value: object = 1.0,
+    missing_role: str | None = None,
+    split_rows: bool = False,
+) -> dict[int, SimpleNamespace]:
+    channels = {
+        role: SimpleNamespace(usage=value)
+        for role in ("server", "climate", "mains")
+        if role != missing_role
+    }
+    if split_rows:
+        return {
+            1: SimpleNamespace(
+                device_gid=SYNTHETIC_CONFIG.device_id,
+                channels={"server": channels["server"]},
+            ),
+            2: SimpleNamespace(
+                device_gid=SYNTHETIC_CONFIG.device_id,
+                channels={key: value for key, value in channels.items() if key != "server"},
+            ),
+        }
+    return {
+        SYNTHETIC_CONFIG.device_id: SimpleNamespace(
+            device_gid=SYNTHETIC_CONFIG.device_id,
+            channels=channels,
+        )
+    }
+
+
+class SyntheticProvider:
+    def __init__(
+        self,
+        responses: dict[str, dict[int, SimpleNamespace]] | None = None,
+        *,
+        fail_scale: str | None = None,
+        fail_login: bool = False,
+    ) -> None:
+        self.responses = responses or {
+            scale: usage_response() for scale in ("second", "day", "month")
+        }
+        self.fail_scale = fail_scale
+        self.fail_login = fail_login
+        self.login_calls = 0
+        self.usage_calls: list[str] = []
+
+    def login(self, **_credentials: str) -> None:
+        self.login_calls += 1
+        if self.fail_login:
+            raise RuntimeError("provider-login-secret-marker")
+
+    def get_device_list_usage(self, **request: object) -> dict[int, SimpleNamespace]:
+        scale = str(request["scale"])
+        self.usage_calls.append(scale)
+        if scale == self.fail_scale:
+            raise RuntimeError(f"provider-response-secret-marker-{scale}")
+        return self.responses[scale]
 
 
 class EnergyCalculationTest(unittest.TestCase):
@@ -156,6 +236,209 @@ class EnergyCalculationTest(unittest.TestCase):
                 {"ENERGY_USERNAME": "synthetic", "ENERGY_PASSWORD": "synthetic"},
                 lambda _path: duplicate,
             )
+
+
+class EnergyFailureTelemetryTest(unittest.TestCase):
+    def setUp(self) -> None:
+        energy_app._cache.update({"data": None, "timestamp": 0.0})
+
+    def assert_fixed_failure(
+        self,
+        runtime: EnergyRuntime,
+        expected: EnergyFailureStage,
+    ) -> None:
+        status, payload = energy_response(runtime)
+        self.assertEqual(status, 503)
+        self.assertEqual(
+            payload,
+            {
+                "error": "Energy collection failed",
+                "failure_stage": expected.value,
+            },
+        )
+        serialized = energy_app.json.dumps(payload)
+        for marker in ("secret", "provider-response", "traceback", "RuntimeError"):
+            self.assertNotIn(marker, serialized)
+
+    def runtime_for(self, provider: SyntheticProvider) -> EnergyRuntime:
+        return EnergyRuntime(
+            SYNTHETIC_CONFIG,
+            lambda: fetch_usage(
+                SYNTHETIC_CONFIG,
+                provider_factory=lambda: provider,
+                scale_values=SCALE_VALUES,
+            ),
+        )
+
+    def test_failure_stage_allowlist_is_exact(self) -> None:
+        self.assertEqual(
+            {stage.value for stage in EnergyFailureStage},
+            {
+                "configuration_loading",
+                "provider_session",
+                "second_usage_retrieval",
+                "day_usage_retrieval",
+                "month_usage_retrieval",
+                "second_selector_validation",
+                "day_selector_validation",
+                "month_selector_validation",
+                "second_numeric_normalization",
+                "day_numeric_normalization",
+                "month_numeric_normalization",
+                "energy_calculation",
+                "unexpected_internal_failure",
+            },
+        )
+
+    def test_configuration_failure_is_value_safe_and_makes_no_provider_call(self) -> None:
+        def fail_config() -> EnergyConfig:
+            raise RuntimeError("configuration-secret-marker")
+
+        runtime = build_energy_runtime(fail_config)
+        self.assert_fixed_failure(runtime, EnergyFailureStage.CONFIGURATION_LOADING)
+        self.assertIsNone(runtime.provider)
+
+    def test_provider_construction_and_login_fail_at_fixed_session_stage(self) -> None:
+        def fail_factory() -> SyntheticProvider:
+            raise RuntimeError("provider-construction-secret-marker")
+
+        construction_runtime = EnergyRuntime(
+            SYNTHETIC_CONFIG,
+            lambda: fetch_usage(
+                SYNTHETIC_CONFIG,
+                provider_factory=fail_factory,
+                scale_values=SCALE_VALUES,
+            ),
+        )
+        self.assert_fixed_failure(construction_runtime, EnergyFailureStage.PROVIDER_SESSION)
+
+        self.setUp()
+        provider = SyntheticProvider(fail_login=True)
+        self.assert_fixed_failure(self.runtime_for(provider), EnergyFailureStage.PROVIDER_SESSION)
+        self.assertEqual(provider.login_calls, 1)
+        self.assertEqual(provider.usage_calls, [])
+
+    def test_each_usage_retrieval_failure_is_fixed_and_stops_without_extra_calls(self) -> None:
+        cases = (
+            ("second", EnergyFailureStage.SECOND_USAGE_RETRIEVAL, ["second"]),
+            ("day", EnergyFailureStage.DAY_USAGE_RETRIEVAL, ["second", "day"]),
+            (
+                "month",
+                EnergyFailureStage.MONTH_USAGE_RETRIEVAL,
+                ["second", "day", "month"],
+            ),
+        )
+        for scale, stage, expected_calls in cases:
+            with self.subTest(scale=scale):
+                self.setUp()
+                provider = SyntheticProvider(fail_scale=scale)
+                self.assert_fixed_failure(self.runtime_for(provider), stage)
+                self.assertEqual(provider.usage_calls, expected_calls)
+
+    def test_each_selector_failure_is_independent_and_stops_without_extra_calls(self) -> None:
+        stages = {
+            "second": EnergyFailureStage.SECOND_SELECTOR_VALIDATION,
+            "day": EnergyFailureStage.DAY_SELECTOR_VALIDATION,
+            "month": EnergyFailureStage.MONTH_SELECTOR_VALIDATION,
+        }
+        scales = ["second", "day", "month"]
+        for index, scale in enumerate(scales):
+            with self.subTest(scale=scale):
+                self.setUp()
+                responses = {name: usage_response() for name in scales}
+                responses[scale] = usage_response(missing_role="mains")
+                provider = SyntheticProvider(responses)
+                self.assert_fixed_failure(self.runtime_for(provider), stages[scale])
+                self.assertEqual(provider.usage_calls, scales[: index + 1])
+
+    def test_each_numeric_failure_is_fixed_and_stops_without_extra_calls(self) -> None:
+        stages = {
+            "second": EnergyFailureStage.SECOND_NUMERIC_NORMALIZATION,
+            "day": EnergyFailureStage.DAY_NUMERIC_NORMALIZATION,
+            "month": EnergyFailureStage.MONTH_NUMERIC_NORMALIZATION,
+        }
+        scales = ["second", "day", "month"]
+        for index, scale in enumerate(scales):
+            with self.subTest(scale=scale):
+                self.setUp()
+                responses = {name: usage_response() for name in scales}
+                responses[scale] = usage_response(value="provider-response-secret-marker")
+                provider = SyntheticProvider(responses)
+                self.assert_fixed_failure(self.runtime_for(provider), stages[scale])
+                self.assertEqual(provider.usage_calls, scales[: index + 1])
+
+    def test_calculation_failure_is_fixed_and_provider_calls_remain_bounded(self) -> None:
+        provider = SyntheticProvider()
+        with mock.patch.object(
+            energy_app,
+            "calculate_energy",
+            side_effect=RuntimeError("calculation-secret-marker"),
+        ):
+            self.assert_fixed_failure(
+                self.runtime_for(provider),
+                EnergyFailureStage.ENERGY_CALCULATION,
+            )
+        self.assertEqual(provider.usage_calls, ["second", "day", "month"])
+
+    def test_unexpected_failure_uses_only_the_fixed_fallback(self) -> None:
+        calls = 0
+
+        def fail_unexpectedly() -> dict[str, float]:
+            nonlocal calls
+            calls += 1
+            raise RuntimeError("unexpected-secret-marker")
+
+        self.assert_fixed_failure(
+            EnergyRuntime(SYNTHETIC_CONFIG, fail_unexpectedly),
+            EnergyFailureStage.UNEXPECTED_INTERNAL_FAILURE,
+        )
+        self.assertEqual(calls, 1)
+
+    def test_success_iterates_all_rows_calls_each_scale_once_and_preserves_contract(self) -> None:
+        responses = {
+            scale: usage_response(split_rows=True)
+            for scale in ("second", "day", "month")
+        }
+        provider = SyntheticProvider(responses)
+        runtime = self.runtime_for(provider)
+        status, payload = energy_response(runtime)
+
+        self.assertEqual(status, 200)
+        self.assertNotIn("failure_stage", payload)
+        self.assertNotIn("error", payload)
+        self.assertEqual(provider.usage_calls, ["second", "day", "month"])
+        self.assertEqual(
+            set(payload),
+            {
+                "server_w",
+                "ac_w",
+                "house_w",
+                "total_w",
+                "server_today",
+                "ac_today",
+                "total_today",
+                "house_today",
+                "server_month",
+                "ac_month",
+                "total_month",
+                "house_month",
+                "month_cost",
+                "projected_kwh",
+                "projected_cost",
+                "house_projected_kwh",
+                "house_projected_cost",
+                "rate",
+                "rate_label",
+                "currency",
+                "days_in_month",
+                "pct_of_house",
+                "observed_at",
+            },
+        )
+
+        second_status, second_payload = energy_response(runtime)
+        self.assertEqual((second_status, second_payload), (status, payload))
+        self.assertEqual(provider.usage_calls, ["second", "day", "month"])
 
 
 if __name__ == "__main__":

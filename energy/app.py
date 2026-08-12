@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import calendar
 import json
+import math
 import os
 import re
 import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable, Mapping
@@ -22,6 +24,32 @@ _SECRET_REFERENCE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
 class ConfigurationError(RuntimeError):
     """A value-suppressed startup configuration failure."""
+
+
+class EnergyFailureStage(str, Enum):
+    """Fixed, value-safe failure stages exposed by the energy boundary."""
+
+    CONFIGURATION_LOADING = "configuration_loading"
+    PROVIDER_SESSION = "provider_session"
+    SECOND_USAGE_RETRIEVAL = "second_usage_retrieval"
+    DAY_USAGE_RETRIEVAL = "day_usage_retrieval"
+    MONTH_USAGE_RETRIEVAL = "month_usage_retrieval"
+    SECOND_SELECTOR_VALIDATION = "second_selector_validation"
+    DAY_SELECTOR_VALIDATION = "day_selector_validation"
+    MONTH_SELECTOR_VALIDATION = "month_selector_validation"
+    SECOND_NUMERIC_NORMALIZATION = "second_numeric_normalization"
+    DAY_NUMERIC_NORMALIZATION = "day_numeric_normalization"
+    MONTH_NUMERIC_NORMALIZATION = "month_numeric_normalization"
+    ENERGY_CALCULATION = "energy_calculation"
+    UNEXPECTED_INTERNAL_FAILURE = "unexpected_internal_failure"
+
+
+class EnergyCollectionFailure(RuntimeError):
+    """An energy failure carrying only one allowlisted stage."""
+
+    def __init__(self, stage: EnergyFailureStage) -> None:
+        self.stage = stage
+        super().__init__(stage.value)
 
 
 @dataclass(frozen=True)
@@ -45,6 +73,15 @@ class EnergyConfig:
     fixed_monthly: float
     seasons: tuple[SeasonRate, ...]
     cache_ttl_seconds: int
+
+
+@dataclass(frozen=True)
+class EnergyRuntime:
+    """The configured collection boundary or one fixed startup failure."""
+
+    config: EnergyConfig | None
+    provider: Callable[[], dict[str, float]] | None
+    failure_stage: EnergyFailureStage | None = None
 
 
 def _mapping(value: Any, field: str) -> dict[str, Any]:
@@ -254,34 +291,111 @@ def load_energy_config(
     )
 
 
-def fetch_usage(config: EnergyConfig) -> dict[str, float]:
+def fetch_usage(
+    config: EnergyConfig,
+    provider_factory: Callable[[], Any] | None = None,
+    scale_values: Mapping[str, str] | None = None,
+) -> dict[str, float]:
     """Fetch configured channels at second/day/month scales."""
-    from pyemvue import PyEmVue
-    from pyemvue.enums import Scale, Unit
+    try:
+        if provider_factory is None:
+            from pyemvue import PyEmVue
 
-    vue = PyEmVue()
-    vue.login(username=config.username, password=config.password)
+            provider_factory = PyEmVue
+        if scale_values is None:
+            from pyemvue.enums import Scale, Unit
+
+            scale_values = {
+                "SECOND": Scale.SECOND.value,
+                "DAY": Scale.DAY.value,
+                "MONTH": Scale.MONTH.value,
+                "KWH": Unit.KWH.value,
+            }
+        vue = provider_factory()
+        vue.login(username=config.username, password=config.password)
+    except Exception:
+        raise EnergyCollectionFailure(EnergyFailureStage.PROVIDER_SESSION) from None
+
     result: dict[str, float] = {}
     channel_roles = {
         config.server_channel: "server",
         config.mains_channel: "house",
         **({config.climate_channel: "ac"} if config.climate_channel else {}),
     }
+    scales = (
+        (
+            "now",
+            scale_values["SECOND"],
+            EnergyFailureStage.SECOND_USAGE_RETRIEVAL,
+            EnergyFailureStage.SECOND_SELECTOR_VALIDATION,
+            EnergyFailureStage.SECOND_NUMERIC_NORMALIZATION,
+        ),
+        (
+            "today",
+            scale_values["DAY"],
+            EnergyFailureStage.DAY_USAGE_RETRIEVAL,
+            EnergyFailureStage.DAY_SELECTOR_VALIDATION,
+            EnergyFailureStage.DAY_NUMERIC_NORMALIZATION,
+        ),
+        (
+            "month",
+            scale_values["MONTH"],
+            EnergyFailureStage.MONTH_USAGE_RETRIEVAL,
+            EnergyFailureStage.MONTH_SELECTOR_VALIDATION,
+            EnergyFailureStage.MONTH_NUMERIC_NORMALIZATION,
+        ),
+    )
 
-    for scale_name, scale in (("now", Scale.SECOND), ("today", Scale.DAY), ("month", Scale.MONTH)):
-        usage = vue.get_device_list_usage(
-            deviceGids=[config.device_id], instant=None, scale=scale.value, unit=Unit.KWH.value
-        )
-        for device in usage.values():
-            for channel_number, channel in getattr(device, "channels", {}).items():
-                role = channel_roles.get(channel_number)
-                if role is None:
+    for scale_name, scale, retrieval_stage, selector_stage, numeric_stage in scales:
+        try:
+            usage = vue.get_device_list_usage(
+                deviceGids=[config.device_id],
+                instant=None,
+                scale=scale,
+                unit=scale_values["KWH"],
+            )
+        except Exception:
+            raise EnergyCollectionFailure(retrieval_stage) from None
+
+        try:
+            if not isinstance(usage, Mapping) or not usage:
+                raise EnergyCollectionFailure(selector_stage)
+
+            expected_roles = set(channel_roles.values())
+            observed_roles: set[str] = set()
+            matched_device = False
+            for device_key, device in usage.items():
+                device_id = getattr(device, "device_gid", device_key)
+                if str(device_id) != str(config.device_id):
                     continue
-                value = float(channel.usage or 0)
-                if scale == Scale.SECOND:
-                    value *= 3_600_000
-                suffix = "watts" if scale_name == "now" else scale_name
-                result[f"{role}_{suffix}"] = value
+                matched_device = True
+                channels = getattr(device, "channels", None)
+                if not isinstance(channels, Mapping):
+                    raise EnergyCollectionFailure(selector_stage)
+                for channel_number, channel in channels.items():
+                    role = channel_roles.get(channel_number)
+                    if role is None:
+                        continue
+                    observed_roles.add(role)
+                    try:
+                        raw_value = getattr(channel, "usage")
+                        if isinstance(raw_value, bool):
+                            raise ValueError
+                        value = float(raw_value or 0)
+                        if scale_name == "now":
+                            value *= 3_600_000
+                        if not math.isfinite(value):
+                            raise ValueError
+                    except Exception:
+                        raise EnergyCollectionFailure(numeric_stage) from None
+                    suffix = "watts" if scale_name == "now" else scale_name
+                    result[f"{role}_{suffix}"] = value
+            if not matched_device or observed_roles != expected_roles:
+                raise EnergyCollectionFailure(selector_stage)
+        except EnergyCollectionFailure:
+            raise
+        except Exception:
+            raise EnergyCollectionFailure(selector_stage) from None
     return result
 
 
@@ -344,14 +458,51 @@ def cached_energy(
     with _cache_lock:
         now = time.time()
         if _cache["data"] is None or now - float(_cache["timestamp"]) >= config.cache_ttl_seconds:
-            _cache["data"] = calculate_energy(provider(), config)
+            raw = provider()
+            try:
+                _cache["data"] = calculate_energy(raw, config)
+            except EnergyCollectionFailure:
+                raise
+            except Exception:
+                raise EnergyCollectionFailure(EnergyFailureStage.ENERGY_CALCULATION) from None
             _cache["timestamp"] = now
         return dict(_cache["data"])
 
 
+def build_energy_runtime(
+    config_loader: Callable[[], EnergyConfig] = load_energy_config,
+    usage_fetcher: Callable[[EnergyConfig], dict[str, float]] = fetch_usage,
+) -> EnergyRuntime:
+    """Build the runtime without retaining configuration failure details."""
+    try:
+        config = config_loader()
+        if not isinstance(config, EnergyConfig):
+            raise TypeError
+    except Exception:
+        return EnergyRuntime(None, None, EnergyFailureStage.CONFIGURATION_LOADING)
+    return EnergyRuntime(config, lambda: usage_fetcher(config))
+
+
+def energy_response(runtime: EnergyRuntime) -> tuple[int, dict[str, Any]]:
+    """Return a successful payload or one fixed, value-safe 503 payload."""
+    try:
+        if runtime.failure_stage is not None:
+            raise EnergyCollectionFailure(runtime.failure_stage)
+        if runtime.config is None or runtime.provider is None:
+            raise RuntimeError
+        return 200, cached_energy(runtime.provider, runtime.config)
+    except EnergyCollectionFailure as error:
+        stage = error.stage
+    except Exception:
+        stage = EnergyFailureStage.UNEXPECTED_INTERNAL_FAILURE
+    return 503, {
+        "error": "Energy collection failed",
+        "failure_stage": stage.value,
+    }
+
+
 class EnergyHandler(BaseHTTPRequestHandler):
-    config: EnergyConfig
-    provider: Callable[[], dict[str, float]]
+    runtime: EnergyRuntime
 
     def do_GET(self) -> None:  # noqa: N802
         if self.path == "/health":
@@ -360,10 +511,8 @@ class EnergyHandler(BaseHTTPRequestHandler):
         if self.path != "/energy":
             self._json(404, {"error": "Not found"})
             return
-        try:
-            self._json(200, cached_energy(self.provider, self.config))
-        except Exception:
-            self._json(503, {"error": "Energy collection failed"})
+        status, payload = energy_response(self.runtime)
+        self._json(status, payload)
 
     def log_message(self, format_string: str, *args: Any) -> None:
         return
@@ -378,9 +527,7 @@ class EnergyHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    config = load_energy_config()
-    EnergyHandler.config = config
-    EnergyHandler.provider = lambda: fetch_usage(config)
+    EnergyHandler.runtime = build_energy_runtime()
     port = int(os.environ.get("ENERGY_PORT", "8080"))
     ThreadingHTTPServer(("0.0.0.0", port), EnergyHandler).serve_forever()
 
