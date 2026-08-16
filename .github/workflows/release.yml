@@ -110,7 +110,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          failed=0
           for package in ravenhill-dashboard ravenhill-energy; do
-            actual="$(gh api "user/packages/container/${package}" --jq '[.name,.package_type,.visibility,.repository.full_name] | join("|")')"
-            test "$actual" = "${package}|container|private|d4rk22/ravenhill"
+            expected="${package}|container|private|d4rk22/ravenhill"
+            # `test` fails silently, so three consecutive releases reported only
+            # "exit code 1" with no indication of which field drifted. Report the
+            # mismatch instead of just failing.
+            if ! actual="$(gh api "user/packages/container/${package}" --jq '[.name,.package_type,.visibility,.repository.full_name // "<unlinked>"] | join("|")')"; then
+              echo "::error::${package}: package metadata query failed"
+              failed=1
+              continue
+            fi
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::${package}: expected '${expected}' but got '${actual}'"
+              failed=1
+            fi
           done
+          exit "$failed"
