@@ -58,14 +58,28 @@ export function createUpsCollector(options: UpsOptions): Collector<"ups"> {
         privKey: options.privacyPassword,
       };
       const session = snmp.createV3Session(options.host, user, { timeout: 3_500, retries: 0 });
+      let closed = false;
+      // Closing the session cancels pending requests, which invokes this
+      // collector's response callback from inside the socket close handler. A
+      // second close() there throws ERR_SOCKET_DGRAM_NOT_RUNNING outside the
+      // promise and takes down the process.
+      const closeSession = () => {
+        if (closed) return;
+        closed = true;
+        try {
+          session.close();
+        } catch {
+          // Session already torn down.
+        }
+      };
       const abort = () => {
-        session.close();
+        closeSession();
         reject(new Error("UPS SNMP request aborted"));
       };
       signal.addEventListener("abort", abort, { once: true });
       session.get(UPS_OIDS, (error, varbinds) => {
         signal.removeEventListener("abort", abort);
-        session.close();
+        closeSession();
         if (error) return reject(new Error(`UPS SNMP request failed: ${error.message}`));
         if (!varbinds || varbinds.some((varbind) => snmp.isVarbindError(varbind))) {
           return reject(new Error("UPS SNMP returned an unavailable OID"));
