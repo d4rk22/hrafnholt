@@ -5,6 +5,15 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.3] - 2026-08-16
+
+### Fixed
+
+- Close the UPS SNMP session only once. Aborting an in-flight request made
+  net-snmp cancel pending requests from inside the socket close handler, and
+  the second close threw `ERR_SOCKET_DGRAM_NOT_RUNNING` outside the collect
+  promise, exiting the dashboard process.
+
 ## [0.1.2] - 2026-08-12
 
 ### Added
