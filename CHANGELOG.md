@@ -5,6 +5,16 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.4] - 2026-08-17
+
+### Changed
+
+- Give the storage panel a second-generation mountain-gate icon: every
+  path newly authored in this repository, with the motif following the
+  project's own earlier first-party art. The asset inventory, provenance
+  ledger, and public-readiness scans cover the new file; the previous
+  storage-array illustration remains shipped.
+
 ## [0.1.3] - 2026-08-16
 
 ### Fixed
