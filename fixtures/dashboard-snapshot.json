@@ -126,7 +126,7 @@
       "ageSeconds": 0,
       "staleAfterSeconds": 180,
       "message": null,
-      "data": {"serverWatts": 640, "acWatts": 210, "houseWatts": 2400, "totalWatts": 850, "serverTodayKwh": 4.2, "acTodayKwh": 1.4, "todayKwh": 5.6, "houseTodayKwh": 15.8, "serverMonthKwh": 72, "acMonthKwh": 24, "monthKwh": 96, "houseMonthKwh": 280, "projectedKwh": 192, "projectedHouseKwh": 560, "monthCost": 14.4, "projectedCost": 28.8, "projectedHouseCost": 84, "rate": 0.15, "rateLabel": "synthetic flat rate", "daysInMonth": 31, "serverPercentOfHouse": 35}
+      "data": {"serverWatts": 640, "acWatts": 210, "houseWatts": 2400, "totalWatts": 850, "serverTodayKwh": 4.2, "acTodayKwh": 1.4, "todayKwh": 5.6, "houseTodayKwh": 15.8, "serverMonthKwh": 72, "acMonthKwh": 24, "monthKwh": 96, "houseMonthKwh": 280, "projectedKwh": 192, "projectedHouseKwh": 560, "monthCost": 14.4, "projectedCost": 28.8, "projectedHouseCost": 84, "rate": 0.15, "rateLabel": "synthetic flat rate", "daysInMonth": 31, "serverPercentOfHouse": 35, "moversWindowMinutes": 60, "movers": [{"name": "Garage EV Charger", "watts": 0, "deltaWatts": -7200}, {"name": "Dryer", "watts": 4650, "deltaWatts": 4520}, {"name": "Kitchen Oven", "watts": 40, "deltaWatts": -1210}, {"name": "Living Room AC", "watts": 820, "deltaWatts": 310}, {"name": "Server Room", "watts": 640, "deltaWatts": 180}]}
     },
     "rackPower": {
       "status": "ok",
