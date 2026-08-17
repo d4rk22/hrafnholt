@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { loadPersistedPowerSamples, persistPowerSamples, type PowerSample } from "../../src/collectors/unifi.js";
 
 test("UniFi PDU sample state survives reload with bounded non-secret content", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "ravenhill-demo-rack-power-"));
+  const directory = await mkdtemp(join(tmpdir(), "hrafnholt-demo-rack-power-"));
   const statePath = join(directory, "rack-power-samples.json");
   const now = new Date("2030-01-10T12:00:00.000Z");
   const samples: PowerSample[] = [
@@ -26,7 +26,7 @@ test("UniFi PDU sample state survives reload with bounded non-secret content", a
 });
 
 test("UniFi PDU persistence drops stale, future, invalid, and excess samples", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "ravenhill-demo-rack-power-bounds-"));
+  const directory = await mkdtemp(join(tmpdir(), "hrafnholt-demo-rack-power-bounds-"));
   const statePath = join(directory, "rack-power-samples.json");
   const now = new Date("2030-01-10T12:00:00.000Z");
   const recent = Array.from({ length: 3_010 }, (_, index) => ({

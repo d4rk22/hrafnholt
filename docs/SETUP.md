@@ -14,7 +14,7 @@ in source control.
 ```bash
 npm ci
 npm run build
-RAVENHILL_CONFIG=./ravenhill.example.yml npm start
+HRAFNHOLT_CONFIG=./hrafnholt.example.yml npm start
 ```
 
 Browse to <http://127.0.0.1:3000> and verify:
@@ -30,13 +30,13 @@ The demo configuration contains no live collector. Query selectors such as
 ## Build and run the dashboard container locally
 
 ```bash
-docker build --tag ravenhill-dashboard:local .
+docker build --tag hrafnholt-dashboard:local .
 docker run --rm \
   --read-only \
   --cap-drop=ALL \
   --security-opt=no-new-privileges \
   --publish 127.0.0.1:3000:3000 \
-  ravenhill-dashboard:local
+  hrafnholt-dashboard:local
 ```
 
 The image contains the synthetic example configuration, so this command starts
@@ -60,7 +60,7 @@ server:
 
 presentation:
   branding:
-    title: Ravenhill
+    title: Hrafnholt
     subtitle: Operations dashboard
     home_label: Home
   locale: en-US
@@ -92,10 +92,10 @@ docker run --rm \
   --cap-drop=ALL \
   --security-opt=no-new-privileges \
   --publish 127.0.0.1:3000:3000 \
-  --mount type=bind,src=/etc/ravenhill/ravenhill.yml,dst=/etc/ravenhill/ravenhill.yml,readonly \
+  --mount type=bind,src=/etc/hrafnholt/hrafnholt.yml,dst=/etc/hrafnholt/hrafnholt.yml,readonly \
   --mount type=bind,src=/run/operator-secrets/television-api-key,dst=/run/secrets/television-api-key,readonly \
   --env TELEVISION_API_KEY_FILE=/run/secrets/television-api-key \
-  ravenhill-dashboard:local
+  hrafnholt-dashboard:local
 ```
 
 Use an absolute source path and protect host secret files with the least
@@ -108,7 +108,7 @@ The sidecar requires the top-level `energy` configuration and its two secret
 references. Build it separately:
 
 ```bash
-docker build --tag ravenhill-energy:local ./energy
+docker build --tag hrafnholt-energy:local ./energy
 ```
 
 Mount the same read-only configuration into both services, inject only the

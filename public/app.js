@@ -19,7 +19,7 @@ import {
 
 const MAP_HOME_DECORATION_MARGIN = 54;
 const DEFAULT_CONFIGURATION = Object.freeze({
-  branding: { title: "Ravenhill", subtitle: "Operations dashboard", home_label: "Home" },
+  branding: { title: "Hrafnholt", subtitle: "Operations dashboard", home_label: "Home" },
   locale: "en-US",
   timezone: "UTC",
   currency: "USD",

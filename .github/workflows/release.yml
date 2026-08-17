@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   validate:
-    if: github.repository == 'd4rk22/ravenhill'
+    if: github.repository == 'd4rk22/hrafnholt'
     uses: ./.github/workflows/ci.yml
 
   release-metadata:
@@ -51,10 +51,10 @@ jobs:
         include:
           - component: dashboard
             context: .
-            title: Ravenhill dashboard
+            title: Hrafnholt dashboard
           - component: energy
             context: ./energy
-            title: Ravenhill energy sidecar
+            title: Hrafnholt energy sidecar
     steps:
       - name: Check out source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -70,7 +70,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
-          images: ghcr.io/d4rk22/ravenhill-${{ matrix.component }}
+          images: ghcr.io/d4rk22/hrafnholt-${{ matrix.component }}
           flavor: latest=false
           tags: |
             type=ref,event=tag
@@ -87,14 +87,14 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            RAVENHILL_VERSION=${{ github.ref_name }}
-            RAVENHILL_REVISION=${{ github.sha }}
-            RAVENHILL_SOURCE=https://github.com/${{ github.repository }}
+            HRAFNHOLT_VERSION=${{ github.ref_name }}
+            HRAFNHOLT_REVISION=${{ github.sha }}
+            HRAFNHOLT_SOURCE=https://github.com/${{ github.repository }}
           sbom: true
           provenance: mode=max
       - name: Record immutable digest
         # Registry-native attestations bind subject-digest: ${{ steps.build.outputs.digest }}
-        run: printf '%s@%s\n' 'ghcr.io/d4rk22/ravenhill-${{ matrix.component }}' '${{ steps.build.outputs.digest }}' >> "$GITHUB_STEP_SUMMARY"
+        run: printf '%s@%s\n' 'ghcr.io/d4rk22/hrafnholt-${{ matrix.component }}' '${{ steps.build.outputs.digest }}' >> "$GITHUB_STEP_SUMMARY"
 
   verify-private-packages:
     name: Release / verify private packages
@@ -111,7 +111,7 @@ jobs:
       - name: Require anonymous registry access to be denied
         run: |
           set -euo pipefail
-          for package in ravenhill-dashboard ravenhill-energy; do
+          for package in hrafnholt-dashboard hrafnholt-energy; do
             status="$(curl -sS -o /dev/null -w '%{http_code}' \
               "https://ghcr.io/token?service=ghcr.io&scope=repository:d4rk22/${package}:pull")"
             if [ "${status}" != "401" ]; then

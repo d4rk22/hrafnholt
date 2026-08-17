@@ -216,7 +216,7 @@
       "message": null,
       "data": {"total": 4, "running": 4, "environments": [
         {"id": "demo-runtime", "name": "Demo runtime", "status": "online", "connected": true, "containers": [
-          {"name": "ravenhill-demo", "state": "running", "status": "Synthetic healthy"},
+          {"name": "hrafnholt-demo", "state": "running", "status": "Synthetic healthy"},
           {"name": "demo-collector-a", "state": "running", "status": "Synthetic healthy"},
           {"name": "demo-collector-b", "state": "running", "status": "Synthetic healthy"},
           {"name": "demo-cache", "state": "running", "status": "Synthetic healthy"}

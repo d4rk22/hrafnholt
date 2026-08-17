@@ -1,9 +1,9 @@
 # Changelog
 
-All notable Ravenhill changes will be recorded here. The project follows
+All notable Hrafnholt changes will be recorded here. The project follows
 [Semantic Versioning](https://semver.org/) after its first public release.
 
-## Unreleased
+## Unreleased  ### Changed  - The project is renamed from Ravenhill to Hrafnholt (Old Norse: raven wood/hill) by maintainer decision recorded in docs/NAMING.md. Every occurrence moves in one pass: package name, branding default, container image names (ghcr.io/d4rk22/hrafnholt-dashboard and -energy from the next release), the HRAFNHOLT_CONFIG environment variable, the hrafnholt.example.yml configuration file, and all documentation. This is a pre-first-public-release breaking rename with no compatibility aliases.
 
 ## [0.1.6] - 2026-08-17
 

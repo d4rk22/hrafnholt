@@ -60,7 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported privately through
-[GitHub private reporting](https://github.com/d4rk22/ravenhill/security/advisories/new).
+[GitHub private reporting](https://github.com/d4rk22/hrafnholt/security/advisories/new).
 If that channel is unavailable, contact the repository owner without sensitive
 details and wait for a private channel. All complaints will be reviewed and
 investigated promptly and fairly.

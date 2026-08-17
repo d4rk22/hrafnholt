@@ -24,7 +24,7 @@ message.
 
 ## Working locally
 
-Use `ravenhill.example.yml` for demo mode. `.env.example` contains synthetic
+Use `hrafnholt.example.yml` for demo mode. `.env.example` contains synthetic
 development values and may be copied to ignored `.env` when testing direct
 secret variables. Prefer temporary files when testing the `*_FILE` interface;
 never add their contents to logs or assertions.

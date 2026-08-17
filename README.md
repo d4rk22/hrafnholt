@@ -1,15 +1,15 @@
-# Ravenhill
+# Hrafnholt
 
-Ravenhill is a portable, read-only operations dashboard for a self-hosted
+Hrafnholt is a portable, read-only operations dashboard for a self-hosted
 environment. A Node.js service validates configuration, polls only the
 collectors an operator enables, normalizes their results, and serves a
 same-origin browser application. An optional Python sidecar supplies energy
-data. Ravenhill has no mutation API and demo mode needs no credentials or
+data. Hrafnholt has no mutation API and demo mode needs no credentials or
 upstream network.
 
 This tree is a pre-release candidate licensed under Apache License 2.0. No
 source archive, container image, or package should be represented as an
-official Ravenhill release until it is produced by the guarded release
+official Hrafnholt release until it is produced by the guarded release
 workflow from the reviewed public repository.
 
 ## Quick demo
@@ -19,7 +19,7 @@ Requirements: Node.js 24 and npm.
 ```bash
 npm ci
 npm run build
-RAVENHILL_CONFIG=./ravenhill.example.yml npm start
+HRAFNHOLT_CONFIG=./hrafnholt.example.yml npm start
 ```
 
 Open <http://127.0.0.1:3000>. The example selects `healthy` demo mode and uses
@@ -27,7 +27,7 @@ only bounded synthetic data. The other review states are available at
 `/?demo=empty`, `/?demo=stale`, `/?demo=degraded`,
 `/?demo=collector-failure`, and `/?demo=privacy`.
 
-## What Ravenhill provides
+## What Hrafnholt provides
 
 - strict, versioned YAML configuration with unknown-field rejection;
 - optional, instance-driven collectors with independent timeout, freshness,
@@ -40,7 +40,7 @@ only bounded synthetic data. The other review states are available at
 - responsive privacy presentation, coarse map rendering, and accessible chart
   interactions.
 
-Ravenhill does not provide authentication, authorization, secret storage, DNS,
+Hrafnholt does not provide authentication, authorization, secret storage, DNS,
 TLS termination, or a deployment control plane. Operators must supply those
 boundaries where their environment needs them.
 
@@ -78,5 +78,5 @@ the [security boundary](docs/SECURITY.md) before exposing a live instance.
 
 ## License
 
-Ravenhill is licensed under the [Apache License, Version 2.0](LICENSE). See
+Hrafnholt is licensed under the [Apache License, Version 2.0](LICENSE). See
 [`NOTICE`](NOTICE) for the project notice.

@@ -1,16 +1,16 @@
 {
-  "name": "ravenhill-dashboard",
+  "name": "hrafnholt-dashboard",
   "version": "0.1.6",
   "private": true,
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/d4rk22/ravenhill.git"
+    "url": "git+https://github.com/d4rk22/hrafnholt.git"
   },
   "bugs": {
-    "url": "https://github.com/d4rk22/ravenhill/issues"
+    "url": "https://github.com/d4rk22/hrafnholt/issues"
   },
-  "homepage": "https://github.com/d4rk22/ravenhill#readme",
+  "homepage": "https://github.com/d4rk22/hrafnholt#readme",
   "type": "module",
   "engines": {
     "node": ">=24 <25"

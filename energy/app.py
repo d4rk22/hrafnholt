@@ -1,4 +1,4 @@
-"""Provider-neutral Ravenhill energy sidecar boundary."""
+"""Provider-neutral Hrafnholt energy sidecar boundary."""
 
 from __future__ import annotations
 
@@ -172,7 +172,7 @@ def load_energy_config(
         for key_node, value_node in node.value:
             key = loader.construct_object(key_node, deep=deep)
             if key in mapping:
-                raise ConfigurationError("Ravenhill configuration contains a duplicate field")
+                raise ConfigurationError("Hrafnholt configuration contains a duplicate field")
             mapping[key] = loader.construct_object(value_node, deep=deep)
         return mapping
 
@@ -182,14 +182,14 @@ def load_energy_config(
     )
 
     env = environment if environment is not None else os.environ
-    path = config_path or env.get("RAVENHILL_CONFIG", "ravenhill.yml")
+    path = config_path or env.get("HRAFNHOLT_CONFIG", "hrafnholt.yml")
     reader = read_text or (lambda value: Path(value).read_text(encoding="utf-8"))
     try:
         document = yaml.load(reader(path), Loader=UniqueKeyLoader)
     except ConfigurationError:
         raise
     except Exception as error:
-        raise ConfigurationError("Ravenhill configuration file could not be read or parsed") from error
+        raise ConfigurationError("Hrafnholt configuration file could not be read or parsed") from error
 
     root = _mapping(document, "configuration")
     if root.get("schema_version") != 1:

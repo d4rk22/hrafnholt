@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import type { RavenhillConfigDocument } from "../config.js";
+import type { HrafnholtConfigDocument } from "../config.js";
 
-export function publicConfiguration(config: RavenhillConfigDocument) {
+export function publicConfiguration(config: HrafnholtConfigDocument) {
   const netdata = config.collectors.find((collector) => collector.type === "netdata");
   return {
     schemaVersion: "1.0.0" as const,
@@ -18,7 +18,7 @@ export function publicConfiguration(config: RavenhillConfigDocument) {
   };
 }
 
-export function registerConfigurationRoutes(app: FastifyInstance, config: RavenhillConfigDocument) {
+export function registerConfigurationRoutes(app: FastifyInstance, config: HrafnholtConfigDocument) {
   const response = publicConfiguration(config);
   app.get("/api/v1/configuration", async () => response);
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { loadConfig, parseConfigDocument, ravenhillConfigSchema } from "../src/config.js";
+import { loadConfig, parseConfigDocument, hrafnholtConfigSchema } from "../src/config.js";
 import { createCollectorRuntime } from "../src/collectors/index.js";
 import { publicConfiguration } from "../src/routes/configuration.js";
 
@@ -16,7 +16,7 @@ schema_version: 1
 mode: live
 presentation:
   branding:
-    title: Ravenhill Test
+    title: Hrafnholt Test
     subtitle: Synthetic test dashboard
     home_label: Test Home
   locale: en-GB
@@ -60,7 +60,7 @@ collectors:
 `;
 
 test("example configuration is versioned, typed, and safely defaults to demo mode", async () => {
-  const example = await readFile(new URL("../ravenhill.example.yml", import.meta.url), "utf8");
+  const example = await readFile(new URL("../hrafnholt.example.yml", import.meta.url), "utf8");
   const config = parseConfigDocument(example);
   const dashboardConfig = loadConfig({}, { configurationText: example });
 
@@ -157,7 +157,7 @@ presentation:
 collectors: []
 `);
 
-  assert.equal(config.presentation.branding.title, "Ravenhill");
+  assert.equal(config.presentation.branding.title, "Hrafnholt");
   assert.equal(config.presentation.home, null);
   assert.equal(config.presentation.privacy.default_mode, "public");
   assert.equal(config.presentation.privacy.allow_private_toggle, false);
@@ -231,7 +231,7 @@ test("public presentation exposes configured units and only the safe host associ
     "vram_free", "temperature", "power", "cpu", "ram_used", "ram_free",
     "ram_cached", "ram_buffers",
   ];
-  const document = ravenhillConfigSchema.parse({
+  const document = hrafnholtConfigSchema.parse({
     schema_version: 1,
     mode: "live",
     presentation: { units: { temperature: "fahrenheit" } },

@@ -1,6 +1,6 @@
 # Provider-neutral secret injection
 
-Ravenhill names secrets in typed configuration but never embeds a secret
+Hrafnholt names secrets in typed configuration but never embeds a secret
 manager SDK. The deployment platform resolves those names into either a direct
 environment variable or a mounted file.
 
@@ -10,7 +10,7 @@ For this configuration field:
 api_key_ref: TELEVISION_API_KEY
 ```
 
-Ravenhill accepts exactly one of:
+Hrafnholt accepts exactly one of:
 
 ```text
 TELEVISION_API_KEY_FILE=/run/secrets/television_api_key
@@ -34,7 +34,7 @@ one silently.
   resolved file path.
 - Secret references and values are omitted from health, public configuration,
   normalized snapshots, and expected logs.
-- References are data only. Ravenhill performs no shell, command, template, or
+- References are data only. Hrafnholt performs no shell, command, template, or
   arbitrary variable evaluation.
 
 ## Platform patterns
@@ -47,9 +47,9 @@ Any platform that can mount a file can use the same interface:
 | Kubernetes | Mount a Secret volume and point `*_FILE` at one key file |
 | systemd | Use a credential file and expose its path through `*_FILE` |
 | Vault, OpenBao, or cloud agents | Render a short-lived file into a service-only mount |
-| Encrypted configuration tooling | Decrypt outside Ravenhill into a protected runtime file |
+| Encrypted configuration tooling | Decrypt outside Hrafnholt into a protected runtime file |
 
-Ravenhill does not require or prefer a particular vendor. Rotation, audit,
+Hrafnholt does not require or prefer a particular vendor. Rotation, audit,
 transport, file ownership, and revocation remain deployment responsibilities.
 
 ## Local development

@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a portable, read-only Ravenhill improvement.
+description: Propose a portable, read-only Hrafnholt improvement.
 title: "[Feature]: "
 labels:
   - enhancement
@@ -26,7 +26,7 @@ body:
     attributes:
       label: Project boundary
       options:
-        - label: The proposal preserves Ravenhill's read-only application boundary.
+        - label: The proposal preserves Hrafnholt's read-only application boundary.
           required: true
         - label: Examples and attachments contain no private or production-derived data.
           required: true
