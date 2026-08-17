@@ -244,7 +244,7 @@ test("community health files and guarded SHA-pinned workflows are release-ready"
 
 test("every shipped first-party visual is inventoried and legacy gate assets are absent", async () => {
   const assets = (await readdir(join(dashboardRoot, "public", "assets"))).sort();
-  assert.deepEqual(assets, ["storage-array.svg", "world-map.svg"]);
+  assert.deepEqual(assets, ["mountain-gate.svg", "storage-array.svg", "world-map.svg"]);
 
   const provenance = await readFile(join(dashboardRoot, "docs", "ASSET-PROVENANCE.md"), "utf8");
   for (const asset of assets) assert.match(provenance, new RegExp(`public/assets/${asset.replace(".", "\\.")}`));
@@ -299,6 +299,7 @@ test("the runtime retains Ravenhill but contains no other reviewed Tolkien-deriv
     "public/index.html",
     "public/privacy-mode.js",
     "public/styles.css",
+    "public/assets/mountain-gate.svg",
     "public/assets/storage-array.svg",
   ];
   const reviewedTerms = [

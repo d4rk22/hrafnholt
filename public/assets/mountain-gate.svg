@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Original Ravenhill mountain-gate geometry, second generation: every
+     path newly authored in this repository; the motif follows the project's
+     own earlier icon. No path data or raster content reused; no external
+     image or literary source. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 738 573" role="presentation">
+  <!-- skyline: one massif, three interlocked peaks -->
+  <path fill="none" stroke="#9edbd3" stroke-width="7.8" stroke-linecap="square"
+        stroke-linejoin="miter" opacity=".9"
+        d="M 48 500 L 168 268 L 240 168 L 300 280 L 369 72 L 438 280 L 498 168 L 570 268 L 690 500"/>
+
+  <!-- ridge folds for depth -->
+  <path fill="none" stroke="#9edbd3" stroke-width="4.5" stroke-linecap="square" opacity=".5"
+        d="M 369 72 L 337 204 M 240 168 L 222 250 M 498 168 L 516 250"/>
+
+  <!-- ground line -->
+  <path fill="none" stroke="#9edbd3" stroke-width="6" stroke-linecap="square" opacity=".55"
+        d="M 36 500 L 702 500"/>
+
+  <!-- gate facade, castellated at the shoulders -->
+  <path fill="none" stroke="#9edbd3" stroke-width="6.5" stroke-linecap="square" opacity=".8"
+        d="M 273 500 L 273 390 L 300 330 L 438 330 L 465 390 L 465 500"/>
+  <path fill="none" stroke="#9edbd3" stroke-width="5" stroke-linecap="square" opacity=".7"
+        d="M 300 330 L 300 310 L 320 310 L 320 330 M 418 330 L 418 310 L 438 310 L 438 330"/>
+
+  <!-- door: outer arch and recessed inner arch -->
+  <path fill="none" stroke="#d8ebee" stroke-width="7.5" stroke-linecap="square" opacity=".85"
+        d="M 303 500 L 303 416 C 303 372 328 348 369 348 C 410 348 435 372 435 416 L 435 500"/>
+  <path fill="none" stroke="#d8ebee" stroke-width="5.5" stroke-linecap="square" opacity=".5"
+        d="M 323 500 L 323 424 C 323 392 341 372 369 372 C 397 372 415 392 415 424 L 415 500"/>
+
+  <!-- the gem set above the gate, and its light down the door seam -->
+  <path fill="none" stroke="#63d5c6" stroke-width="6" stroke-linecap="square" opacity=".7"
+        d="M 369 296 L 369 500"/>
+  <path fill="#63d5c6" fill-opacity=".92" stroke="#d8ebee" stroke-width="6.6"
+        stroke-linecap="square" d="M 369 252 L 391 274 L 369 296 L 347 274 Z"/>
+</svg>
