@@ -554,7 +554,7 @@ h2 { font-size: 24px; line-height: 1; }
 .host-guests strong { display: block; color: var(--frost); font-family: var(--display); font-size: 20px; }
 
 .storage-hero { display: grid; grid-template-columns: 132px minmax(0, 1.35fr) minmax(0, .85fr); align-items: center; gap: 19px; min-height: 156px; padding: 19px 21px 13px; }
-.storage-array { display: block; width: 132px; aspect-ratio: 246 / 191; object-fit: contain; filter: drop-shadow(0 0 8px rgba(var(--telemetry-rgb), .16)); }
+.mountain-gate { display: block; width: 132px; aspect-ratio: 246 / 191; object-fit: contain; filter: drop-shadow(0 0 8px rgba(var(--telemetry-rgb), .16)); }
 .storage-primary, .storage-free { min-width: 0; }
 .storage-primary strong, .storage-free strong { display: block; overflow: hidden; font-family: var(--display); font-weight: 700; line-height: .95; white-space: nowrap; }
 .storage-primary strong { font-size: 37px; }
@@ -840,7 +840,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--telemetry); out
   .host-stat strong { min-height: 27px; overflow: hidden; font-size: 9px; line-height: 1.25; }
   .host-guests strong { font-size: 24px; }
   .storage-hero { grid-template-columns: 86px minmax(0, 1.2fr) minmax(0, .8fr); gap: 12px; min-height: 136px; padding: 16px 15px 10px; }
-  .storage-array { width: 86px; }
+  .mountain-gate { width: 86px; }
   .storage-primary strong { font-size: 29px; }
   .storage-free strong { font-size: 20px; }
   .storage-rail { margin-right: 15px; margin-left: 15px; }
