@@ -5,6 +5,8 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.6] - 2026-08-17
+
 ### Added
 
 - `presentation.privacy.aliases` lets operators configure the roster used
