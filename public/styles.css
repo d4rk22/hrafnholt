@@ -607,6 +607,25 @@ h2 { font-size: 24px; line-height: 1; }
 .energy-projections strong { display: block; margin-top: 6px; color: var(--telemetry); font-family: var(--display); font-size: 25px; line-height: 1; }
 .energy-projections > div:last-child strong { color: var(--frost); }
 
+.energy-movers { padding: 15px 19px 17px; border-top: 1px solid var(--line); }
+.energy-movers__heading { display: flex; align-items: baseline; justify-content: space-between; }
+.energy-movers__heading span { color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.energy-movers__heading small { color: var(--muted); font-size: 9px; }
+.energy-movers__heading small b { color: var(--frost); font-weight: 500; }
+.energy-movers__list { margin: 9px 0 0; padding: 0; list-style: none; }
+.energy-mover { display: grid; grid-template-columns: 14px 1fr auto auto; align-items: center; gap: 0 10px; padding: 7px 0; }
+.energy-mover + .energy-mover { border-top: 1px solid var(--line); }
+.energy-mover__arrow { font-size: 9px; line-height: 1; }
+.energy-mover--up .energy-mover__arrow, .energy-mover--up > b { color: var(--amber); }
+.energy-mover--down .energy-mover__arrow, .energy-mover--down > b { color: var(--telemetry); }
+.energy-mover__name { min-width: 0; }
+.energy-mover__name strong { display: block; overflow: hidden; color: var(--frost); font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.energy-mover__bar { display: block; height: 3px; margin-top: 4px; background: var(--rail); }
+.energy-mover--up .energy-mover__bar i { display: block; height: 100%; background: var(--amber); opacity: .55; }
+.energy-mover--down .energy-mover__bar i { display: block; height: 100%; background: var(--telemetry); opacity: .55; }
+.energy-mover > small { color: var(--muted); font-family: var(--mono); font-size: 9px; }
+.energy-mover > b { min-width: 52px; font-family: var(--mono); font-size: 11px; font-weight: 500; text-align: right; }
+
 .rack-power-hero { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr .9fr; min-height: 142px; border-bottom: 1px solid var(--line); }
 .rack-power-now { position: relative; min-width: 0; padding: 18px 19px 16px; border-right: 1px solid var(--line); }
 .rack-power-now > span, .rack-power-forecast span { display: block; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }

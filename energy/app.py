@@ -9,6 +9,7 @@ import os
 import re
 import threading
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -20,6 +21,13 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 _cache: dict[str, Any] = {"data": None, "timestamp": 0.0}
 _cache_lock = threading.Lock()
 _SECRET_REFERENCE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+
+MOVERS_WINDOW_SECONDS = 3_600
+MOVERS_RETENTION_SECONDS = 3_900
+MOVERS_LIMIT = 5
+MOVERS_NAME_LIMIT = 40
+MOVERS_CIRCUIT_LIMIT = 48
+_movers_history: deque[tuple[float, dict[str, dict[str, Any]]]] = deque()
 
 
 class ConfigurationError(RuntimeError):
@@ -80,7 +88,7 @@ class EnergyRuntime:
     """The configured collection boundary or one fixed startup failure."""
 
     config: EnergyConfig | None
-    provider: Callable[[], dict[str, float]] | None
+    provider: Callable[[], dict[str, Any]] | None
     failure_stage: EnergyFailureStage | None = None
 
 
@@ -291,11 +299,41 @@ def load_energy_config(
     )
 
 
+def collect_circuit_sample(
+    circuits: dict[str, dict[str, Any]],
+    channel_number: Any,
+    channel: Any,
+    config: EnergyConfig,
+) -> None:
+    """Record one auxiliary circuit reading; malformed entries are skipped.
+
+    Circuit data feeds the movers list only, so it must never fail the
+    core telemetry contract: anything aggregate (the mains selector, any
+    multi-channel selector, the provider's pseudo-channels) or malformed
+    is dropped instead of raising.
+    """
+    if len(circuits) >= MOVERS_CIRCUIT_LIMIT:
+        return
+    key = str(channel_number)
+    if key == str(config.mains_channel) or "," in key or key in ("TotalUsage", "Balance"):
+        return
+    raw_value = getattr(channel, "usage", None)
+    if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+        return
+    watts = float(raw_value) * 3_600_000
+    if not math.isfinite(watts):
+        return
+    name = getattr(channel, "name", None)
+    if not isinstance(name, str) or not name.strip():
+        name = f"Circuit {key}"
+    circuits[key] = {"name": name.strip()[:MOVERS_NAME_LIMIT], "w": watts}
+
+
 def fetch_usage(
     config: EnergyConfig,
     provider_factory: Callable[[], Any] | None = None,
     scale_values: Mapping[str, str] | None = None,
-) -> dict[str, float]:
+) -> dict[str, Any]:
     """Fetch configured channels at second/day/month scales."""
     try:
         if provider_factory is None:
@@ -316,7 +354,8 @@ def fetch_usage(
     except Exception:
         raise EnergyCollectionFailure(EnergyFailureStage.PROVIDER_SESSION) from None
 
-    result: dict[str, float] = {}
+    result: dict[str, Any] = {}
+    circuits: dict[str, dict[str, Any]] = {}
     channel_roles = {
         config.server_channel: "server",
         config.mains_channel: "house",
@@ -373,6 +412,8 @@ def fetch_usage(
                 if not isinstance(channels, Mapping):
                     raise EnergyCollectionFailure(selector_stage)
                 for channel_number, channel in channels.items():
+                    if scale_name == "now":
+                        collect_circuit_sample(circuits, channel_number, channel, config)
                     role = channel_roles.get(channel_number)
                     if role is None:
                         continue
@@ -396,6 +437,7 @@ def fetch_usage(
             raise
         except Exception:
             raise EnergyCollectionFailure(selector_stage) from None
+    result["circuits"] = circuits
     return result
 
 
@@ -451,8 +493,45 @@ def calculate_energy(
     }
 
 
+def compute_movers(
+    history: deque[tuple[float, dict[str, dict[str, Any]]]],
+    circuits: dict[str, dict[str, Any]],
+    now: float,
+) -> dict[str, Any]:
+    """Append the newest circuit sample and rank the largest changes.
+
+    The baseline is the oldest sample still inside the retention window,
+    so the reported window grows from zero after a restart up to roughly
+    ``MOVERS_WINDOW_SECONDS``. Circuits without a baseline reading and
+    changes that round to zero watts are omitted.
+    """
+    history.append((now, circuits))
+    while history and now - history[0][0] > MOVERS_RETENTION_SECONDS:
+        history.popleft()
+    baseline_at, baseline = history[0]
+    window_seconds = max(0.0, now - baseline_at)
+    rows: list[dict[str, Any]] = []
+    for key, sample in circuits.items():
+        before = baseline.get(key)
+        if before is None:
+            continue
+        delta = round(float(sample["w"]) - float(before["w"]))
+        if delta == 0:
+            continue
+        rows.append({
+            "name": sample["name"],
+            "w": round(float(sample["w"])),
+            "delta_w": delta,
+        })
+    rows.sort(key=lambda row: (-abs(row["delta_w"]), row["name"]))
+    return {
+        "window_minutes": round(window_seconds / 60),
+        "circuits": rows[:MOVERS_LIMIT],
+    }
+
+
 def cached_energy(
-    provider: Callable[[], dict[str, float]],
+    provider: Callable[[], dict[str, Any]],
     config: EnergyConfig,
 ) -> dict[str, Any]:
     with _cache_lock:
@@ -460,7 +539,10 @@ def cached_energy(
         if _cache["data"] is None or now - float(_cache["timestamp"]) >= config.cache_ttl_seconds:
             raw = provider()
             try:
-                _cache["data"] = calculate_energy(raw, config)
+                circuits = raw.pop("circuits", {}) if isinstance(raw, dict) else {}
+                payload = calculate_energy(raw, config)
+                payload["movers"] = compute_movers(_movers_history, circuits, now)
+                _cache["data"] = payload
             except EnergyCollectionFailure:
                 raise
             except Exception:
@@ -471,7 +553,7 @@ def cached_energy(
 
 def build_energy_runtime(
     config_loader: Callable[[], EnergyConfig] = load_energy_config,
-    usage_fetcher: Callable[[EnergyConfig], dict[str, float]] = fetch_usage,
+    usage_fetcher: Callable[[EnergyConfig], dict[str, Any]] = fetch_usage,
 ) -> EnergyRuntime:
     """Build the runtime without retaining configuration failure details."""
     try:

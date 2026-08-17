@@ -5,6 +5,16 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+### Added
+
+- The energy panel lists the top five circuit movers: the energy sidecar
+  now samples every real circuit each poll (aggregate selectors and the
+  provider's pseudo-channels excluded), keeps a one-hour in-memory
+  window, and reports the largest signed watt changes; the dashboard
+  renders them with rising draw in amber and falling draw in teal. The
+  list warms up over the first hour after a sidecar restart and hides
+  until it has at least one nonzero change.
+
 ## [0.1.4] - 2026-08-17
 
 ### Changed

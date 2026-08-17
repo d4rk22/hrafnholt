@@ -118,6 +118,17 @@ export const powerDataSchema = z.object({
   rateLabel: z.string().max(80),
   daysInMonth: z.number().int().min(28).max(31),
   serverPercentOfHouse: z.number().min(0).max(100),
+  moversWindowMinutes: z.number().min(0).max(1_440).default(0),
+  movers: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(40),
+        watts: z.number().finite().nonnegative(),
+        deltaWatts: z.number().finite(),
+      }),
+    )
+    .max(5)
+    .default([]),
 });
 
 export const rackPowerDataSchema = z.object({

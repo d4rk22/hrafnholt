@@ -6,8 +6,26 @@ function record(value: unknown): UnknownRecord {
   return value && typeof value === "object" ? value as UnknownRecord : {};
 }
 
+function normalizeMovers(input: unknown): { windowMinutes: number; circuits: unknown[] } {
+  const movers = record(input);
+  const windowMinutes = Math.min(1_440, Math.max(0, Math.trunc(finiteNumber(movers.window_minutes))));
+  const circuits = (Array.isArray(movers.circuits) ? movers.circuits : [])
+    .slice(0, 5)
+    .map((entry) => {
+      const circuit = record(entry);
+      return {
+        name: boundedText(circuit.name ?? "", 40),
+        watts: Math.max(0, finiteNumber(circuit.w)),
+        deltaWatts: finiteNumber(circuit.delta_w),
+      };
+    })
+    .filter((circuit) => circuit.name.length > 0 && circuit.deltaWatts !== 0);
+  return { windowMinutes, circuits };
+}
+
 export function normalizeEmporia(input: unknown): PanelData<"power"> {
   const data = record(input);
+  const movers = normalizeMovers(data.movers);
   return powerDataSchema.parse({
     serverWatts: finiteNumber(data.server_w),
     acWatts: finiteNumber(data.ac_w),
@@ -30,6 +48,8 @@ export function normalizeEmporia(input: unknown): PanelData<"power"> {
     rateLabel: boundedText(data.rate_label ?? "unknown", 80),
     daysInMonth: Math.min(31, Math.max(28, Math.trunc(finiteNumber(data.days_in_month, 30)))),
     serverPercentOfHouse: Math.min(100, Math.max(0, finiteNumber(data.pct_of_house))),
+    moversWindowMinutes: movers.windowMinutes,
+    movers: movers.circuits,
   });
 }
 

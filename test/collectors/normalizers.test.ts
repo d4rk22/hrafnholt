@@ -356,6 +356,30 @@ test("energy normalization preserves every synthetic ledger field", () => {
   assert.equal(energy.projectedHouseKwh, 900);
   assert.equal(energy.projectedHouseCost, 75);
   assert.equal(energy.daysInMonth, 31);
+  assert.deepEqual(energy.movers, []);
+  assert.equal(energy.moversWindowMinutes, 0);
+});
+
+test("Emporia circuit movers normalize bounded and drop malformed rows", () => {
+  const energy = normalizeEmporia({
+    movers: {
+      window_minutes: 58.9,
+      circuits: [
+        { name: "Dryer", w: 4_600.4, delta_w: 4_500 },
+        { name: "Oven", w: -20, delta_w: -750.6 },
+        { name: "", w: 10, delta_w: 300 },
+        { name: "Steady", w: 60, delta_w: 0 },
+        { name: "X".repeat(80), w: 1, delta_w: 2 },
+        { name: "Overflow", w: 5, delta_w: 5 },
+      ],
+    },
+  });
+  assert.equal(energy.moversWindowMinutes, 58);
+  assert.equal(energy.movers.length, 3);
+  assert.deepEqual(energy.movers[0], { name: "Dryer", watts: 4_600.4, deltaWatts: 4_500 });
+  assert.deepEqual(energy.movers[1], { name: "Oven", watts: 0, deltaWatts: -750.6 });
+  assert.equal(energy.movers[2]?.name.length, 40);
+  assert.deepEqual(normalizeEmporia({ movers: { window_minutes: "soon", circuits: "none" } }).movers, []);
 });
 
 test("standard UPS OIDs normalize battery status, charge, runtime, and load", () => {
