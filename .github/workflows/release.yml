@@ -101,16 +101,21 @@ jobs:
     needs: publish
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    permissions:
-      contents: read
-      packages: read
+    # Deliberately credential-free: "private" means anonymous registry access
+    # is denied. The previous check called the user-scoped packages API with
+    # the Actions installation token, which can never act as the
+    # authenticated user, so it returned 403 and failed on every release
+    # ever cut (v0.1.0 through v0.1.4) without verifying anything.
+    permissions: {}
     steps:
-      - name: Require private repository-linked packages
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Require anonymous registry access to be denied
         run: |
           set -euo pipefail
           for package in ravenhill-dashboard ravenhill-energy; do
-            actual="$(gh api "user/packages/container/${package}" --jq '[.name,.package_type,.visibility,.repository.full_name] | join("|")')"
-            test "$actual" = "${package}|container|private|d4rk22/ravenhill"
+            status="$(curl -sS -o /dev/null -w '%{http_code}' \
+              "https://ghcr.io/token?service=ghcr.io&scope=repository:d4rk22/${package}:pull")"
+            if [ "${status}" != "401" ]; then
+              echo "::error::anonymous pull-token request for ${package} returned HTTP ${status} instead of 401; the package may be public"
+              exit 1
+            fi
           done
