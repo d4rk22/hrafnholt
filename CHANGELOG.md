@@ -5,6 +5,8 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.5] - 2026-08-17
+
 ### Added
 
 - The energy panel lists the top five circuit movers: the energy sidecar
