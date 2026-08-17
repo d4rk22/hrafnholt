@@ -72,9 +72,28 @@ test("example configuration is versioned, typed, and safely defaults to demo mod
   assert.equal(config.presentation.home, null);
   assert.equal(config.presentation.privacy.default_mode, "public");
   assert.equal(config.presentation.privacy.allow_private_toggle, false);
+  assert.deepEqual(config.presentation.privacy.aliases, []);
   assert.equal(config.presentation.units.temperature, "celsius");
   assert.equal(config.energy?.rates.seasons.flatMap(({ months }) => months).length, 12);
   assert.equal(dashboardConfig.secrets.size, 0);
+});
+
+test("privacy aliases accept a bounded unique roster and reject weak ones", () => {
+  const withAliases = (aliases: string) => `
+schema_version: 1
+mode: demo
+presentation:
+  privacy:
+    aliases: ${aliases}
+collectors: []
+`;
+
+  const config = parseConfigDocument(withAliases("[Lyra, Orion, Vega]"));
+  assert.deepEqual(config.presentation.privacy.aliases, ["Lyra", "Orion", "Vega"]);
+
+  assert.throws(() => parseConfigDocument(withAliases("[Lonely]")), /at least two/);
+  assert.throws(() => parseConfigDocument(withAliases("[Lyra, lyra]")), /unique ignoring case/);
+  assert.throws(() => parseConfigDocument(withAliases(`[Lyra, "${"X".repeat(41)}"]`)));
 });
 
 test("demo mode refuses configured network collectors", () => {

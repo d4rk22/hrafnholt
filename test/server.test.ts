@@ -85,7 +85,7 @@ test("fixture mode serves health and the versioned snapshot", async () => {
     timezone: "Europe/London",
     currency: "USD",
     home: null,
-    privacy: { default_mode: "public", allow_private_toggle: false },
+    privacy: { default_mode: "public", allow_private_toggle: false, aliases: [] },
     units: { temperature: "celsius" },
     associations: { plex_host_proxmox_node: null },
   });

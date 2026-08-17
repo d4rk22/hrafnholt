@@ -219,7 +219,13 @@ const presentationSchema = z.object({
   privacy: z.object({
     default_mode: z.enum(["public", "private"]).default("public"),
     allow_private_toggle: z.boolean().default(false),
-  }).strict().default({ default_mode: "public", allow_private_toggle: false }),
+    aliases: z.array(z.string().trim().min(1).max(40)).max(64).default([])
+      .refine((aliases) => aliases.length !== 1, "one alias cannot mask distinct viewers; provide at least two or omit the list")
+      .refine(
+        (aliases) => new Set(aliases.map((alias) => alias.toLocaleLowerCase("en-US"))).size === aliases.length,
+        "aliases must be unique ignoring case",
+      ),
+  }).strict().default({ default_mode: "public", allow_private_toggle: false, aliases: [] }),
   units: z.object({
     temperature: z.enum(["celsius", "fahrenheit"]).default("celsius"),
   }).strict().default({ temperature: "celsius" }),
@@ -277,7 +283,7 @@ export const ravenhillConfigSchema = z.object({
     locale: "en-US",
     timezone: "UTC",
     home: null,
-    privacy: { default_mode: "public", allow_private_toggle: false },
+    privacy: { default_mode: "public", allow_private_toggle: false, aliases: [] },
     units: { temperature: "celsius" },
   }),
   collectors: z.array(collectorConfigSchema).max(100).default([]),

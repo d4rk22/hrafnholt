@@ -158,6 +158,13 @@ masking is not an authorization boundary, because a client with API access can
 inspect normalized responses. Do not expose Ravenhill to untrusted users when
 the API contains identities or locations they are not authorized to see.
 
+`privacy.aliases` optionally replaces the built-in Argonaut roster used for
+masked viewer names: 2 to 64 unique entries (case-insensitive), each 1 to 40
+characters after trimming. An empty or omitted list keeps the built-in roster.
+Aliases are shuffled per browser session and assigned stably to each distinct
+viewer within that session; a roster smaller than the number of concurrent
+viewers reuses names in assignment order.
+
 ## Energy configuration
 
 The optional `energy` section configures the provider, service-scoped secret

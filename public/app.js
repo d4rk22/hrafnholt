@@ -24,7 +24,7 @@ const DEFAULT_CONFIGURATION = Object.freeze({
   timezone: "UTC",
   currency: "USD",
   home: null,
-  privacy: { default_mode: "public", allow_private_toggle: false },
+  privacy: { default_mode: "public", allow_private_toggle: false, aliases: [] },
   units: { temperature: "celsius" },
   associations: { plex_host_proxmox_node: null },
 });
@@ -39,7 +39,7 @@ let capacityPointerRatio = null;
 let currentEpisodesPanel = null;
 let currentEpisodeDate = null;
 let selectedEpisodeDate = null;
-const privacyAliasRegistry = createPrivacyAliasRegistry();
+let privacyAliasRegistry = createPrivacyAliasRegistry();
 let privacyMode = "public";
 let latestStreamsPanel = null;
 let presentation = DEFAULT_CONFIGURATION;
@@ -1059,6 +1059,10 @@ async function loadPresentationConfiguration() {
   const response = await fetch("/api/v1/configuration", { headers: { accept: "application/json" }, cache: "no-store" });
   if (!response.ok) throw new Error(`Configuration request failed with HTTP ${response.status}`);
   presentation = await response.json();
+  if (presentation.privacy?.aliases?.length) {
+    privacyAliasRegistry = createPrivacyAliasRegistry(undefined, presentation.privacy.aliases);
+    if (latestStreamsPanel) renderStreams(latestStreamsPanel);
+  }
   document.documentElement.lang = presentation.locale;
   document.title = presentation.branding.title;
   document.querySelector('meta[name="description"]')?.setAttribute("content", presentation.branding.subtitle);
