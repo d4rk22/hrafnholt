@@ -9,18 +9,18 @@ RUN npm run build
 
 FROM node:24-alpine AS runtime
 
-ARG RAVENHILL_VERSION=0.1.1-dev
-ARG RAVENHILL_REVISION=unknown
-ARG RAVENHILL_SOURCE=https://github.com/d4rk22/ravenhill
-LABEL org.opencontainers.image.title="Ravenhill dashboard" \
+ARG HRAFNHOLT_VERSION=0.1.1-dev
+ARG HRAFNHOLT_REVISION=unknown
+ARG HRAFNHOLT_SOURCE=https://github.com/d4rk22/hrafnholt
+LABEL org.opencontainers.image.title="Hrafnholt dashboard" \
       org.opencontainers.image.description="Portable, read-only operations dashboard" \
-      org.opencontainers.image.version="${RAVENHILL_VERSION}" \
-      org.opencontainers.image.revision="${RAVENHILL_REVISION}" \
-      org.opencontainers.image.source="${RAVENHILL_SOURCE}" \
+      org.opencontainers.image.version="${HRAFNHOLT_VERSION}" \
+      org.opencontainers.image.revision="${HRAFNHOLT_REVISION}" \
+      org.opencontainers.image.source="${HRAFNHOLT_SOURCE}" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 ENV NODE_ENV=production \
-    RAVENHILL_CONFIG=/etc/ravenhill/ravenhill.yml
+    HRAFNHOLT_CONFIG=/etc/hrafnholt/hrafnholt.yml
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev \
@@ -48,9 +48,9 @@ RUN npm ci --omit=dev \
 COPY --from=build /app/dist ./dist
 COPY public ./public
 COPY fixtures ./fixtures
-COPY ravenhill.example.yml /etc/ravenhill/ravenhill.yml
-COPY LICENSE NOTICE /usr/share/licenses/ravenhill/
-RUN install -d -o node -g node -m 0700 /var/lib/ravenhill
+COPY hrafnholt.example.yml /etc/hrafnholt/hrafnholt.yml
+COPY LICENSE NOTICE /usr/share/licenses/hrafnholt/
+RUN install -d -o node -g node -m 0700 /var/lib/hrafnholt
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

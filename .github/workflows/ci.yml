@@ -68,48 +68,48 @@ jobs:
       - name: Build local images with release identity
         run: |
           docker build \
-            --build-arg RAVENHILL_VERSION=0.0.0-ci \
-            --build-arg RAVENHILL_REVISION="$GITHUB_SHA" \
-            --build-arg RAVENHILL_SOURCE="https://github.com/$GITHUB_REPOSITORY" \
-            --tag ravenhill-dashboard:ci \
+            --build-arg HRAFNHOLT_VERSION=0.0.0-ci \
+            --build-arg HRAFNHOLT_REVISION="$GITHUB_SHA" \
+            --build-arg HRAFNHOLT_SOURCE="https://github.com/$GITHUB_REPOSITORY" \
+            --tag hrafnholt-dashboard:ci \
             .
           docker build \
-            --build-arg RAVENHILL_VERSION=0.0.0-ci \
-            --build-arg RAVENHILL_REVISION="$GITHUB_SHA" \
-            --build-arg RAVENHILL_SOURCE="https://github.com/$GITHUB_REPOSITORY" \
-            --tag ravenhill-energy:ci \
+            --build-arg HRAFNHOLT_VERSION=0.0.0-ci \
+            --build-arg HRAFNHOLT_REVISION="$GITHUB_SHA" \
+            --build-arg HRAFNHOLT_SOURCE="https://github.com/$GITHUB_REPOSITORY" \
+            --tag hrafnholt-energy:ci \
             ./energy
       - name: Verify image identity and license payloads
         run: |
-          for image in ravenhill-dashboard:ci ravenhill-energy:ci; do
+          for image in hrafnholt-dashboard:ci hrafnholt-energy:ci; do
             test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image")" = "$GITHUB_SHA"
             test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.source" }}' "$image")" = "https://github.com/$GITHUB_REPOSITORY"
             test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.licenses" }}' "$image")" = "Apache-2.0"
-            docker run --rm --entrypoint sh "$image" -c 'test -s /usr/share/licenses/ravenhill/LICENSE && test -s /usr/share/licenses/ravenhill/NOTICE'
+            docker run --rm --entrypoint sh "$image" -c 'test -s /usr/share/licenses/hrafnholt/LICENSE && test -s /usr/share/licenses/hrafnholt/NOTICE'
           done
       - name: Start hardened network-isolated containers
         run: |
           docker run --detach \
-            --name ravenhill-dashboard-ci \
+            --name hrafnholt-dashboard-ci \
             --network none \
             --read-only \
-            --tmpfs /var/lib/ravenhill:rw,noexec,nosuid,size=16m \
+            --tmpfs /var/lib/hrafnholt:rw,noexec,nosuid,size=16m \
             --cap-drop ALL \
             --security-opt no-new-privileges \
-            ravenhill-dashboard:ci
+            hrafnholt-dashboard:ci
           docker run --detach \
-            --name ravenhill-energy-ci \
+            --name hrafnholt-energy-ci \
             --network none \
             --read-only \
             --cap-drop ALL \
             --security-opt no-new-privileges \
-            --volume "$PWD/ravenhill.example.yml:/etc/ravenhill/ravenhill.yml:ro" \
+            --volume "$PWD/hrafnholt.example.yml:/etc/hrafnholt/hrafnholt.yml:ro" \
             --env ENERGY_USERNAME=synthetic-ci-user \
             --env ENERGY_PASSWORD=synthetic-ci-password \
-            ravenhill-energy:ci
+            hrafnholt-energy:ci
       - name: Require healthy, restart-zero services and synthetic APIs
         run: |
-          for container in ravenhill-dashboard-ci ravenhill-energy-ci; do
+          for container in hrafnholt-dashboard-ci hrafnholt-energy-ci; do
             for _attempt in $(seq 1 30); do
               status="$(docker inspect --format '{{.State.Health.Status}}' "$container")"
               if [ "$status" = healthy ]; then break; fi
@@ -119,16 +119,16 @@ jobs:
             test "$(docker inspect --format '{{.State.Health.Status}}' "$container")" = healthy
             test "$(docker inspect --format '{{.RestartCount}}' "$container")" = 0
           done
-          docker exec ravenhill-dashboard-ci node -e \
+          docker exec hrafnholt-dashboard-ci node -e \
             "Promise.all(['/health/live','/health/ready','/api/v1/dashboard'].map(path => fetch('http://127.0.0.1:3000' + path))).then(responses => { if (responses.some(response => !response.ok)) process.exit(1) }).catch(() => process.exit(1))"
-          docker exec ravenhill-energy-ci python -c \
+          docker exec hrafnholt-energy-ci python -c \
             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"
       - name: Preserve container evidence on failure
         if: failure()
         run: |
-          docker inspect ravenhill-dashboard-ci ravenhill-energy-ci || true
-          docker logs ravenhill-dashboard-ci || true
-          docker logs ravenhill-energy-ci || true
+          docker inspect hrafnholt-dashboard-ci hrafnholt-energy-ci || true
+          docker logs hrafnholt-dashboard-ci || true
+          docker logs hrafnholt-energy-ci || true
       - name: Remove validation containers
         if: always()
-        run: docker rm --force ravenhill-dashboard-ci ravenhill-energy-ci >/dev/null 2>&1 || true
+        run: docker rm --force hrafnholt-dashboard-ci hrafnholt-energy-ci >/dev/null 2>&1 || true

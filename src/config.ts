@@ -4,8 +4,8 @@ import { z } from "zod";
 import { demoStateSchema } from "./contracts/dashboard.js";
 import { resolveSecretReferences, type SecretFileReader } from "./secrets.js";
 
-export class RavenhillConfigurationError extends Error {
-  override readonly name = "RavenhillConfigurationError";
+export class HrafnholtConfigurationError extends Error {
+  override readonly name = "HrafnholtConfigurationError";
 }
 
 const identifierSchema = z.string()
@@ -205,10 +205,10 @@ const serverSchema = z.object({
 
 const presentationSchema = z.object({
   branding: z.object({
-    title: labelSchema.default("Ravenhill"),
+    title: labelSchema.default("Hrafnholt"),
     subtitle: z.string().trim().min(1).max(120).default("Operations dashboard"),
     home_label: labelSchema.default("Home"),
-  }).strict().default({ title: "Ravenhill", subtitle: "Operations dashboard", home_label: "Home" }),
+  }).strict().default({ title: "Hrafnholt", subtitle: "Operations dashboard", home_label: "Home" }),
   locale: localeSchema.default("en-US"),
   timezone: timezoneSchema.default("UTC"),
   home: z.object({
@@ -271,7 +271,7 @@ const energySchema = z.object({
 
 const repeatableCollectorTypes = new Set(["sabnzbd", "qbittorrent", "sonarr", "radarr"]);
 
-export const ravenhillConfigSchema = z.object({
+export const hrafnholtConfigSchema = z.object({
   schema_version: z.literal(1),
   mode: z.enum(["demo", "live"]).default("demo"),
   demo: z.object({
@@ -279,7 +279,7 @@ export const ravenhillConfigSchema = z.object({
   }).strict().default({ state: "healthy" }),
   server: serverSchema.default({ host: "0.0.0.0", port: 3_000, log_level: "info" }),
   presentation: presentationSchema.default({
-    branding: { title: "Ravenhill", subtitle: "Operations dashboard", home_label: "Home" },
+    branding: { title: "Hrafnholt", subtitle: "Operations dashboard", home_label: "Home" },
     locale: "en-US",
     timezone: "UTC",
     home: null,
@@ -335,10 +335,10 @@ export const ravenhillConfigSchema = z.object({
 });
 
 export type CollectorConfig = z.infer<typeof collectorConfigSchema>;
-export type RavenhillConfigDocument = z.infer<typeof ravenhillConfigSchema>;
+export type HrafnholtConfigDocument = z.infer<typeof hrafnholtConfigSchema>;
 
 export type DashboardConfig = {
-  document: RavenhillConfigDocument;
+  document: HrafnholtConfigDocument;
   secrets: ReadonlyMap<string, string>;
 };
 
@@ -354,21 +354,21 @@ function formatConfigurationIssues(error: z.ZodError): string {
     .join("; ");
 }
 
-export function parseConfigDocument(configurationText: string): RavenhillConfigDocument {
+export function parseConfigDocument(configurationText: string): HrafnholtConfigDocument {
   let input: unknown;
   try {
     input = parseYaml(configurationText, { uniqueKeys: true });
   } catch {
-    throw new RavenhillConfigurationError("Ravenhill configuration is not valid YAML");
+    throw new HrafnholtConfigurationError("Hrafnholt configuration is not valid YAML");
   }
-  const result = ravenhillConfigSchema.safeParse(input);
+  const result = hrafnholtConfigSchema.safeParse(input);
   if (!result.success) {
-    throw new RavenhillConfigurationError(`Invalid Ravenhill configuration: ${formatConfigurationIssues(result.error)}`);
+    throw new HrafnholtConfigurationError(`Invalid Hrafnholt configuration: ${formatConfigurationIssues(result.error)}`);
   }
   return result.data;
 }
 
-function dashboardSecretReferences(config: RavenhillConfigDocument): string[] {
+function dashboardSecretReferences(config: HrafnholtConfigDocument): string[] {
   return config.collectors.flatMap((collector): string[] => {
     switch (collector.type) {
       case "tracearr": return [collector.token_ref];
@@ -395,11 +395,11 @@ export function loadConfig(
 ): DashboardConfig {
   let configurationText = dependencies.configurationText;
   if (configurationText === undefined) {
-    const configPath = environment.RAVENHILL_CONFIG ?? "ravenhill.yml";
+    const configPath = environment.HRAFNHOLT_CONFIG ?? "hrafnholt.yml";
     try {
       configurationText = (dependencies.readConfigurationFile ?? ((path) => readFileSync(path, "utf8")))(configPath);
     } catch {
-      throw new RavenhillConfigurationError("Ravenhill configuration file could not be read");
+      throw new HrafnholtConfigurationError("Hrafnholt configuration file could not be read");
     }
   }
 

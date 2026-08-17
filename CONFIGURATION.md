@@ -1,11 +1,11 @@
-# Ravenhill configuration
+# Hrafnholt configuration
 
-Ravenhill reads versioned, non-secret settings from `ravenhill.yml`. Set
-`RAVENHILL_CONFIG` to choose another path. The dashboard and energy sidecar
+Hrafnholt reads versioned, non-secret settings from `hrafnholt.yml`. Set
+`HRAFNHOLT_CONFIG` to choose another path. The dashboard and energy sidecar
 validate their required sections before listening; malformed configuration,
 unknown fields, and missing secrets stop startup with value-suppressed errors.
 
-Use `ravenhill.example.yml` as the public-safe starting point. It selects demo
+Use `hrafnholt.example.yml` as the public-safe starting point. It selects demo
 mode, neutral UTC presentation defaults, no home coordinates, public privacy
 presentation, and zero collectors. `.env.example` contains only synthetic
 local-development values. Copy it to the ignored `.env` path before
@@ -31,7 +31,7 @@ fixture and deterministically selects one of six review states:
 - `privacy`: three synthetic viewer identities exercise public masking and the
   optional private presentation toggle.
 
-Set `demo.state` in `ravenhill.yml`. Demo snapshots and the browser clock use
+Set `demo.state` in `hrafnholt.yml`. Demo snapshots and the browser clock use
 the fixed, obviously synthetic timestamp in the fixture, so screenshots do not
 capture an operator's local or production clock. The image's built-in example
 configuration selects `healthy`, allowing the dashboard container to start in
@@ -85,7 +85,7 @@ The type-specific required fields are:
 | `uptime_kuma` | `url`, `status_page_slug` | No |
 
 Every row also requires the common `type`, `id`, and `name` fields. An omitted
-row is disabled; it does not cause Ravenhill to probe a default endpoint.
+row is disabled; it does not cause Hrafnholt to probe a default endpoint.
 
 Netdata chart IDs are deployment-specific and therefore have no compiled
 fallback. Its `metrics` mapping requires selectors for GPU utilization,
@@ -125,7 +125,7 @@ host name or device model.
 ## Secrets
 
 A typed secret field contains an environment-variable name, never a secret
-value. For a field such as `api_key_ref: MEDIA_API_KEY`, Ravenhill supports:
+value. For a field such as `api_key_ref: MEDIA_API_KEY`, Hrafnholt supports:
 
 ```text
 MEDIA_API_KEY_FILE=/run/secrets/media_api_key
@@ -133,7 +133,7 @@ MEDIA_API_KEY=synthetic-local-value
 ```
 
 `*_FILE` is the production interface. The direct variable is a compatibility
-and local-development fallback. Setting both forms fails startup; Ravenhill
+and local-development fallback. Setting both forms fails startup; Hrafnholt
 does not choose one silently. Secret files are read once, one trailing line
 ending is removed, and errors identify only the reference and interface—not
 the value or resolved file path.
@@ -155,7 +155,7 @@ mapping otherwise has no safe geographic meaning.
 The safe privacy default is `public` with `allow_private_toggle: false`.
 Enabling the browser toggle is a presentation convenience only: browser-side
 masking is not an authorization boundary, because a client with API access can
-inspect normalized responses. Do not expose Ravenhill to untrusted users when
+inspect normalized responses. Do not expose Hrafnholt to untrusted users when
 the API contains identities or locations they are not authorized to see.
 
 `privacy.aliases` optionally replaces the built-in Argonaut roster used for

@@ -1,6 +1,6 @@
 # Supported collectors
 
-A collector exists only when its row appears in `collectors`. Ravenhill has no
+A collector exists only when its row appears in `collectors`. Hrafnholt has no
 compiled endpoint, credential, host, device, or location fallback. Every row
 requires a unique `id`, an operator-facing `name`, and its type-specific
 settings.
@@ -12,7 +12,7 @@ settings.
 | `tracearr` | Current Plex stream activity and coarse locations | `url`; an explicit presentation home in live mode | `token_ref` | No |
 | `unifi` | WAN traffic and optional metered PDU state | `url`; optional `site`, `pdu.mac_address`, and `pdu.state_path` | `username_ref`, `password_ref` | No |
 | `netdata` | Host, GPU, capacity, and optional workload history | `url`, all typed `metrics`; optional `gpu`, `workload`, and `proxmox_node` | None | No |
-| `energy` | Data from the optional Ravenhill energy sidecar | `url`; matching top-level `energy` section | None in dashboard service | No |
+| `energy` | Data from the optional Hrafnholt energy sidecar | `url`; matching top-level `energy` section | None in dashboard service | No |
 | `ups` | APC-compatible SNMPv3 UPS telemetry | `host` | `username_ref`, `auth_password_ref`, `privacy_password_ref` | No |
 | `sabnzbd` | Download queue state | `url` | `api_key_ref` | Yes |
 | `qbittorrent` | Torrent queue state | `url` | `username_ref`, `password_ref` | Yes |
@@ -56,7 +56,7 @@ that should make no network request.
 
 ## Upstream permissions
 
-Use a read-only account or token whenever the upstream supports one. Ravenhill
+Use a read-only account or token whenever the upstream supports one. Hrafnholt
 does not intentionally call mutation routes, but upstream authorization is the
 stronger boundary if a collector or dependency is ever defective. Keep each
 credential limited to the specific service and API scope it needs.

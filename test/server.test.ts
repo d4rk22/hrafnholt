@@ -9,7 +9,7 @@ server:
   log_level: silent
 presentation:
   branding:
-    title: Test Ravenhill
+    title: Test Hrafnholt
     subtitle: Synthetic dashboard
     home_label: Test Home
   locale: en-GB
@@ -51,7 +51,7 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.equal(episodes.json().episodes.length, 2);
   assert.equal(invalidEpisodes.statusCode, 400);
   assert.equal(index.statusCode, 200);
-  assert.match(index.body, /id="brand-name">Ravenhill/);
+  assert.match(index.body, /id="brand-name">Hrafnholt/);
   assert.match(index.body, /Energy ledger/);
   assert.match(index.body, /Rack energy ledger/);
   assert.match(index.body, /Today’s episodes/);
@@ -80,7 +80,7 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.equal(configuration.statusCode, 200);
   assert.deepEqual(configuration.json(), {
     schemaVersion: "1.0.0",
-    branding: { title: "Test Ravenhill", subtitle: "Synthetic dashboard", home_label: "Test Home" },
+    branding: { title: "Test Hrafnholt", subtitle: "Synthetic dashboard", home_label: "Test Home" },
     locale: "en-GB",
     timezone: "Europe/London",
     currency: "USD",

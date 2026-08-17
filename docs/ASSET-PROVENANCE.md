@@ -14,7 +14,7 @@ License 2.0 project license and records third-party provenance and decisions.
 | --- | --- | --- | --- | --- |
 | `public/assets/storage-array.svg` (`00ac6c7c24bc17df88cd431f0cf275dc4c2b2f0b9c852b3e8dc0a43b3e10339a`) | Original SVG geometry authored in this repository on 2026-08-08; no external image, icon, or literary source | First-party project work under Apache License 2.0 | No third-party attribution; distributed under the repository `LICENSE` and `NOTICE` | Ship |
 | `public/assets/mountain-gate.svg` (`64cc641b7ebbb94440560d205cadd1b4e35ba04b89dadec24669deb179d3460b`) | Original SVG geometry newly authored in this repository on 2026-08-17; the motif (triple peak, arched door, diamond) follows the project's own earlier first-party icon, with no path data or raster content reused and no external image, icon, or literary source | First-party project work under Apache License 2.0 | No third-party attribution; distributed under the repository `LICENSE` and `NOTICE` | Ship |
-| `public/assets/world-map.svg` (`0650ecf4336a445c0e5b50489888ba6a23a90a4be65f052a8680ca493c8ccda2`) | Natural Earth 1:110m Admin 0 Countries v5.1.1, simplified and projected by `scripts/generate-world-map.mjs` into Ravenhill's `760 x 420` SVG view box | Natural Earth public domain | Permission and credit are not required; Ravenhill retains a courtesy source comment and this notice | Ship |
+| `public/assets/world-map.svg` (`0650ecf4336a445c0e5b50489888ba6a23a90a4be65f052a8680ca493c8ccda2`) | Natural Earth 1:110m Admin 0 Countries v5.1.1, simplified and projected by `scripts/generate-world-map.mjs` into Hrafnholt's `760 x 420` SVG view box | Natural Earth public domain | Permission and credit are not required; Hrafnholt retains a courtesy source comment and this notice | Ship |
 | Regional lower-48 plate and state lines in `public/index.html` | Natural Earth 1:110m Admin 0/Admin 1 geometry, simplified and projected into the regional map bounds. The historical transform did not retain the exact Natural Earth release number | Every Natural Earth vector release is public domain; the missing release number is a reproducibility weakness, not a rights gap | Permission and credit are not required; the inline source comment and this notice are retained. Regenerate from a pinned current release when the regional generator is next changed | Ship |
 | Great Lakes layer in `public/index.html` | Natural Earth 1:50m Lakes polygons, simplified, projected, and clipped to the regional plate. The historical transform did not retain the exact Natural Earth release number | Every Natural Earth vector release is public domain | Same optional courtesy attribution as the other Natural Earth layers | Ship |
 | Inline data-URI favicon in `public/index.html` | Original four-block dashboard glyph written directly as SVG path/rectangle geometry | First-party project work under Apache License 2.0 | No third-party attribution | Ship |
@@ -43,7 +43,7 @@ derived visual.
 The final energy filesystem contains no visual file. Its
 `python:3.13-alpine@sha256:399babc8b49529dabfd9c922f2b5eea81d611e4512e3ed250d75bd2e7683f4b0`
 base layer carries 14 small CPython IDLE icons under
-`/usr/local/lib/python3.13/idlelib/Icons/`; Ravenhill removes the unused IDLE
+`/usr/local/lib/python3.13/idlelib/Icons/`; Hrafnholt removes the unused IDLE
 module and launchers in its dependency-install layer. The PSF-licensed icons
 remain recoverable from the public upstream base layer, so the point-9 raw-
 layer review inspected and classified all 14 as generic upstream assets with
@@ -51,7 +51,7 @@ no private or production-derived content.
 
 ## Fonts
 
-Ravenhill ships no font file, web-font CSS, or font download. `public/styles.css`
+Hrafnholt ships no font file, web-font CSS, or font download. `public/styles.css`
 uses only local system fallbacks:
 
 - display: DIN Condensed, Arial Narrow, Avenir Next Condensed, or generic
@@ -78,7 +78,7 @@ context.
 
 The locked npm tarballs and Node base image contain the following unused
 documentation, example, test, or brand images. Their packages include license
-files, but the images serve no Ravenhill runtime purpose; the `Dockerfile`
+files, but the images serve no Hrafnholt runtime purpose; the `Dockerfile`
 explicitly removes every path in the same layer as `npm ci` so none is present
 in the final dashboard filesystem.
 
@@ -100,11 +100,11 @@ The package license sources are the upstream `LICENSE` files for
 and [Pino 10.3.1](https://github.com/pinojs/pino/tree/v10.3.1). Their software
 licenses remain in the installed package tree even though these unused visual
 files are removed. The bundled `qrcode-terminal` package is Apache License 2.0.
-Ravenhill removes the complete unused npm, Corepack, and Yarn toolchains from
+Hrafnholt removes the complete unused npm, Corepack, and Yarn toolchains from
 the final runtime filesystem after installing the application dependencies.
 
 The QR sample is inherited in a lower `node:24-alpine` layer and whiteouted by
-Ravenhill's cleanup layer. It is absent from the flattened dashboard
+Hrafnholt's cleanup layer. It is absent from the flattened dashboard
 filesystem but remains recoverable when raw layers are inspected; point 9
 classified it as the documented generic upstream Apache-2.0 example. The
 other seven dependency visuals are installed and removed within one build

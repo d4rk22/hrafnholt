@@ -6,13 +6,13 @@ contain credentials or personal data.
 
 ## Configuration file cannot be read or parsed
 
-- Confirm `RAVENHILL_CONFIG` points to a readable file.
+- Confirm `HRAFNHOLT_CONFIG` points to a readable file.
 - Validate YAML indentation and duplicate keys.
 - Keep `schema_version: 1` at the document root.
 - Remove unknown fields; the schema is intentionally strict.
-- Start from `ravenhill.example.yml` rather than an old deployment file.
+- Start from `hrafnholt.example.yml` rather than an old deployment file.
 
-The container default is `/etc/ravenhill/ravenhill.yml`.
+The container default is `/etc/hrafnholt/hrafnholt.yml`.
 
 ## A secret is missing or ambiguous
 
@@ -65,7 +65,7 @@ seasons. The sidecar listens on port 8080 by default.
 ## Posters do not render
 
 The Radarr instance ID in the route must match a configured Radarr collector,
-and the movie ID must be numeric. Ravenhill rejects redirects, oversized
+and the movie ID must be numeric. Hrafnholt rejects redirects, oversized
 responses, and content types outside AVIF, WebP, JPEG, and PNG. The movie card
 continues to render without an image when the relay is unavailable.
 

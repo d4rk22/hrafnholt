@@ -1,6 +1,6 @@
-# Contributing to Ravenhill
+# Contributing to Hrafnholt
 
-Thank you for helping improve Ravenhill. Contributions should preserve its
+Thank you for helping improve Hrafnholt. Contributions should preserve its
 portable, read-only, privacy-conscious operating boundary.
 
 ## Before opening an issue
@@ -43,8 +43,8 @@ changes. A pull request is ready when:
 
 ## Licensing contributions
 
-Ravenhill is licensed under Apache License 2.0. Unless you explicitly state
-otherwise, a contribution intentionally submitted for inclusion in Ravenhill
+Hrafnholt is licensed under Apache License 2.0. Unless you explicitly state
+otherwise, a contribution intentionally submitted for inclusion in Hrafnholt
 is provided under the same license, as described by section 5 of
 [`LICENSE`](LICENSE). Do not submit code, data, documentation, or artwork that
 you do not have the right to contribute.

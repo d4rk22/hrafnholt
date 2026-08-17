@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Ravenhill has not published its first stable release. Until then, only the
+Hrafnholt has not published its first stable release. Until then, only the
 latest commit on the default branch is considered for security fixes. After
 the first release, the latest release line and the default branch will be
 supported; older release lines will not receive routine fixes.
@@ -12,7 +12,7 @@ supported; older release lines will not receive routine fixes.
 Do not open a public issue for a suspected vulnerability, credential, private
 endpoint, raw upstream response, or personal data exposure.
 
-Use [GitHub private vulnerability reporting](https://github.com/d4rk22/ravenhill/security/advisories/new).
+Use [GitHub private vulnerability reporting](https://github.com/d4rk22/hrafnholt/security/advisories/new).
 Include the affected revision, impact, reproduction steps using synthetic data,
 and any proposed mitigation. Do not include a live credential or production
 response. If private reporting is unavailable, contact the repository owner
@@ -25,7 +25,7 @@ availability of a safe fix.
 
 ## Security boundary
 
-Ravenhill is a read-only aggregator, not an authentication or authorization
+Hrafnholt is a read-only aggregator, not an authentication or authorization
 gateway. Review the full [privacy and deployment security boundary](docs/SECURITY.md)
 before exposing a live instance. Browser privacy mode changes presentation; it
 does not remove normalized data from the API or browser memory.

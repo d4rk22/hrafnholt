@@ -1,10 +1,10 @@
 # Architecture
 
-Ravenhill separates configuration, collection, normalization, and
+Hrafnholt separates configuration, collection, normalization, and
 presentation so one upstream failure does not erase unrelated dashboard data.
 
 ```text
-ravenhill.yml ──> strict configuration validation
+hrafnholt.yml ──> strict configuration validation
                          │
 secret references ──> service-scoped resolver
                          │
@@ -22,7 +22,7 @@ optional energy sidecar ──────────────────�
 ### Dashboard service
 
 The Node.js 24 service uses Fastify for static files and JSON routes. Startup
-parses `ravenhill.yml`, rejects duplicate YAML keys and unsupported fields,
+parses `hrafnholt.yml`, rejects duplicate YAML keys and unsupported fields,
 validates the versioned schema, and resolves only the secret references used by
 configured collectors. A configuration or required-secret error stops the
 process before it listens.
@@ -34,7 +34,7 @@ remain visible as stale while the error is reported. Required collectors affect
 readiness only after the operator explicitly configures them.
 
 The snapshot store is in memory. The UniFi collector may optionally use an
-operator-selected absolute state path for bounded rate-history state; Ravenhill
+operator-selected absolute state path for bounded rate-history state; Hrafnholt
 does not otherwise require a database.
 
 ### Energy sidecar
@@ -49,7 +49,7 @@ configured `energy` collector URL.
 ### Browser application
 
 The browser loads static HTML, CSS, and JavaScript from the dashboard origin
-and requests only Ravenhill routes. It renders normalized panel envelopes,
+and requests only Hrafnholt routes. It renders normalized panel envelopes,
 never talks directly to collector services, and makes no third-party map, font,
 script, or analytics request. Radarr posters, when enabled, pass through a
 bounded same-origin relay.

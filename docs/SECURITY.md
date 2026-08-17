@@ -1,18 +1,18 @@
 # Privacy and security boundaries
 
-Ravenhill is a read-only aggregator, not a security gateway. Operators must
+Hrafnholt is a read-only aggregator, not a security gateway. Operators must
 decide who may reach the dashboard and which normalized data those users may
 see.
 
 ## Authentication and authorization
 
-Ravenhill currently has no built-in login, role model, or per-route
+Hrafnholt currently has no built-in login, role model, or per-route
 authorization. Anyone who can reach the service can request its same-origin
 API. Put a live deployment behind an authenticated boundary when its data is
 not intended for every network user.
 
 Upstream collector credentials should be read-only and least-privileged. The
-fact that Ravenhill implements only read paths does not replace upstream access
+fact that Hrafnholt implements only read paths does not replace upstream access
 control.
 
 ## Browser privacy mode
@@ -26,7 +26,7 @@ Therefore:
 
 - public mode is useful for shoulder-surfing, demonstrations, and screenshots;
 - it is not anonymization, authentication, or authorization; and
-- Ravenhill must not be exposed to a user who is not allowed to inspect the raw
+- Hrafnholt must not be exposed to a user who is not allowed to inspect the raw
   normalized response.
 
 ## Location and operational data
@@ -44,7 +44,7 @@ responses. The resolver suppresses values and resolved file paths in its own
 errors, and logger redaction covers common authorization, cookie, password,
 token, and API-key fields. These controls reduce accidental disclosure; they
 cannot protect a secret that the deployment writes into a world-readable file,
-passes on a command line, logs before Ravenhill receives it, or injects into an
+passes on a command line, logs before Hrafnholt receives it, or injects into an
 unrelated process.
 
 Use the [`*_FILE` contract](SECRETS.md), service-scoped mounts, protected file
@@ -54,8 +54,8 @@ permissions, and a read-only upstream identity.
 
 Demo mode constructs no collectors and needs no upstream network. Live mode
 makes outbound requests only for configured collectors and poster sources. The
-browser itself uses the Ravenhill origin and loads no remote map, font, script,
-analytics, or image asset except posters returned through Ravenhill's bounded
+browser itself uses the Hrafnholt origin and loads no remote map, font, script,
+analytics, or image asset except posters returned through Hrafnholt's bounded
 relay.
 
 Collector TLS verification defaults to enabled. Disabling it permits a
@@ -68,7 +68,7 @@ The Radarr poster route accepts only a configured instance identifier and a
 bounded numeric movie ID. It rejects redirects, limits responses to two MiB,
 and accepts only AVIF, WebP, JPEG, or PNG content types. The relay is not a
 general URL proxy. Poster copyright and audience suitability remain the
-operator's responsibility; no poster is part of the shipped Ravenhill assets.
+operator's responsibility; no poster is part of the shipped Hrafnholt assets.
 
 ## Container hardening
 

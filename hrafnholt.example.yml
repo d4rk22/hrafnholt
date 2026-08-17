@@ -12,7 +12,7 @@ server:
 
 presentation:
   branding:
-    title: Ravenhill
+    title: Hrafnholt
     subtitle: Portable operations dashboard
     home_label: Home
   locale: en-US

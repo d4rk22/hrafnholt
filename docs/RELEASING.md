@@ -1,6 +1,6 @@
 # Release process
 
-Ravenhill is licensed under Apache License 2.0 but remains a pre-release
+Hrafnholt is licensed under Apache License 2.0 but remains a pre-release
 candidate. The presence of release automation does not make an artifact an
 official release. The first public source commit, repository visibility,
 registry publication, and stable-version declaration remain explicit
@@ -66,29 +66,29 @@ Release tags are immutable. Never move or recreate a published version tag.
 ## Container publication
 
 `.github/workflows/release.yml` runs only for version tags in
-`d4rk22/ravenhill`. It reruns the complete CI workflow and then verifies the
+`d4rk22/hrafnholt`. It reruns the complete CI workflow and then verifies the
 exact tag form, default-branch ancestry, package version, and changelog entry
 before any registry login or push.
 
 The workflow publishes two independently identified images:
 
-- `ghcr.io/d4rk22/ravenhill-dashboard`; and
-- `ghcr.io/d4rk22/ravenhill-energy`.
+- `ghcr.io/d4rk22/hrafnholt-dashboard`; and
+- `ghcr.io/d4rk22/hrafnholt-energy`.
 
 For each private release, every image receives the immutable version tag and
 `sha-<full-commit>` tag, registry-native BuildKit SBOM and maximum-mode
 provenance attestations, OCI identity labels, and a registry digest. GitHub
-artifact attestations are deferred until Ravenhill is public or read-only
+artifact attestations are deferred until Hrafnholt is public or read-only
 evidence proves eligibility through GitHub Enterprise Cloud. No floating
 `latest` tag is produced. Deployments use the accepted digest, not a tag.
 
 The dashboard and energy build contexts each carry the Apache license and
-applicable notice into `/usr/share/licenses/ravenhill/` in the image.
+applicable notice into `/usr/share/licenses/hrafnholt/` in the image.
 
 ## First-publication boundary
 
 The release workflows are intentionally inert while this candidate remains a
-subtree of the private homelab repository. Before the first Ravenhill release:
+subtree of the private homelab repository. Before the first Hrafnholt release:
 
 - create the clean root commit only from the reviewed candidate;
 - run the final independent source, secret, container, SBOM, provenance,

@@ -22,7 +22,7 @@ const runtimeEntryFiles = [
   "SECURITY.md",
   "package.json",
   "package-lock.json",
-  "ravenhill.example.yml",
+  "hrafnholt.example.yml",
   "tsconfig.json",
   "energy/Dockerfile",
   "energy/app.py",
@@ -184,7 +184,7 @@ test("Apache licensing and release metadata cover source and both images", async
   };
   assert.equal(packageDocument.private, true);
   assert.equal(packageDocument.license, "Apache-2.0");
-  assert.equal(packageDocument.repository?.url, "git+https://github.com/d4rk22/ravenhill.git");
+  assert.equal(packageDocument.repository?.url, "git+https://github.com/d4rk22/hrafnholt.git");
 
   for (const dockerfilePath of ["Dockerfile", "energy/Dockerfile"]) {
     const dockerfile = await readFile(join(dashboardRoot, dockerfilePath), "utf8");
@@ -194,7 +194,7 @@ test("Apache licensing and release metadata cover source and both images", async
       "org.opencontainers.image.source",
       "org.opencontainers.image.licenses",
     ]) assert.match(dockerfile, new RegExp(label.replaceAll(".", "\\.")));
-    assert.match(dockerfile, /COPY LICENSE NOTICE \/usr\/share\/licenses\/ravenhill\//);
+    assert.match(dockerfile, /COPY LICENSE NOTICE \/usr\/share\/licenses\/hrafnholt\//);
   }
 });
 
@@ -228,9 +228,9 @@ test("community health files and guarded SHA-pinned workflows are release-ready"
   assert.match(ci, /--security-opt no-new-privileges/);
 
   const release = await readFile(join(dashboardRoot, ".github/workflows/release.yml"), "utf8");
-  assert.match(release, /github\.repository == 'd4rk22\/ravenhill'/);
+  assert.match(release, /github\.repository == 'd4rk22\/hrafnholt'/);
   assert.doesNotMatch(release, /workflow_dispatch/);
-  assert.match(release, /ghcr\.io\/d4rk22\/ravenhill-\$\{\{ matrix\.component \}\}/);
+  assert.match(release, /ghcr\.io\/d4rk22\/hrafnholt-\$\{\{ matrix\.component \}\}/);
   assert.match(release, /type=sha,prefix=sha-,format=long/);
   assert.match(release, /sbom: true/);
   assert.match(release, /provenance: mode=max/);
@@ -252,7 +252,7 @@ test("every shipped first-party visual is inventoried and legacy gate assets are
   assert.match(provenance, /Regional lower-48 plate and state lines/);
   assert.match(provenance, /Great Lakes layer/);
   assert.match(provenance, /Traffic, capacity, workload, route, node, and label SVG groups/);
-  assert.match(provenance, /Ravenhill ships no font file/);
+  assert.match(provenance, /Hrafnholt ships no font file/);
   assert.match(provenance, /energy sidecar ships no application image, SVG, map, font, icon, or\s+derived visual/);
   assert.match(provenance, /Radarr poster bytes[\s\S]+are not in Git/);
 
@@ -293,7 +293,7 @@ test("dependency and base-image visuals have current provenance and explicit run
   assert.match(provenance, /QR sample[\s\S]+whiteouted[\s\S]+raw layers/);
 });
 
-test("the runtime retains Ravenhill but contains no other reviewed Tolkien-derived names", async () => {
+test("the runtime retains Hrafnholt but contains no other reviewed Tolkien-derived names", async () => {
   const runtimePaths = [
     "public/app.js",
     "public/index.html",
@@ -336,7 +336,7 @@ test("the runtime retains Ravenhill but contains no other reviewed Tolkien-deriv
   const runtime = (await Promise.all(runtimePaths.map(async (path) =>
     `${path}\n${await readFile(join(dashboardRoot, path), "utf8")}`))).join("\n");
 
-  assert.match(runtime, /Ravenhill/);
+  assert.match(runtime, /Hrafnholt/);
   for (const term of reviewedTerms) {
     const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     assert.doesNotMatch(runtime, new RegExp(`(?<![\\p{L}\\p{N}])${escapedTerm}(?![\\p{L}\\p{N}])`, "iu"));
