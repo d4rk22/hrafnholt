@@ -21,6 +21,11 @@ presentation:
   privacy:
     default_mode: public
     allow_private_toggle: false
+    # Optional custom roster for masked viewer names (2-64 unique entries,
+    # each at most 40 characters). Omit or leave empty to use the built-in
+    # Argonaut list.
+    # aliases: [Lyra, Orion, Vega, Altair, Cassiopeia, Draco]
+    aliases: []
   units:
     temperature: celsius
 

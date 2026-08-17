@@ -5,6 +5,19 @@ All notable Ravenhill changes will be recorded here. The project follows
 
 ## Unreleased
 
+### Added
+
+- `presentation.privacy.aliases` lets operators configure the roster used
+  for masked viewer names: 2-64 unique entries, each at most 40 characters,
+  validated server-side and sanitized again in the browser. An empty or
+  omitted list keeps the built-in roster.
+
+### Changed
+
+- The built-in privacy alias roster is now the crew of the Argo (Acastus
+  through Zetes, from the public-domain ancient Greek sources), replacing
+  the botanical list.
+
 ## [0.1.5] - 2026-08-17
 
 ### Added

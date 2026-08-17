@@ -1,28 +1,30 @@
+// The crew of the Argo, as recorded by Apollonius of Rhodes and Apollodorus:
+// ancient Greek sources, long in the public domain.
 export const PRIVACY_ALIASES = Object.freeze([
-  "Alder",
-  "Aspen",
-  "Birch",
-  "Cedar",
-  "Cypress",
-  "Dogwood",
-  "Elm",
-  "Fir",
-  "Hawthorn",
-  "Hazel",
-  "Juniper",
-  "Larch",
-  "Linden",
-  "Magnolia",
-  "Maple",
-  "Pine",
-  "Redwood",
-  "Rowan",
-  "Sequoia",
-  "Spruce",
-  "Sycamore",
-  "Willow",
-  "Yew",
-  "Zelkova",
+  "Acastus",
+  "Admetus",
+  "Ancaeus",
+  "Argus",
+  "Atalanta",
+  "Augeas",
+  "Calais",
+  "Castor",
+  "Euphemus",
+  "Heracles",
+  "Idas",
+  "Idmon",
+  "Jason",
+  "Laertes",
+  "Lynceus",
+  "Meleager",
+  "Mopsus",
+  "Orpheus",
+  "Peleus",
+  "Periclymenus",
+  "Polydeuces",
+  "Telamon",
+  "Tiphys",
+  "Zetes",
 ]);
 
 function secureRandomUnit() {
@@ -46,8 +48,23 @@ function shuffle(values, random) {
 
 const normalizedUsername = (username) => String(username ?? "unknown viewer").trim().toLocaleLowerCase("en-US") || "unknown viewer";
 
-export function createPrivacyAliasRegistry(random = secureRandomUnit) {
-  const availableAliases = shuffle(PRIVACY_ALIASES, random);
+export function sanitizedAliasList(aliases) {
+  if (!Array.isArray(aliases)) return PRIVACY_ALIASES;
+  const seen = new Set();
+  const cleaned = [];
+  for (const alias of aliases.slice(0, 64)) {
+    if (typeof alias !== "string") continue;
+    const trimmed = alias.trim();
+    const key = trimmed.toLocaleLowerCase("en-US");
+    if (!trimmed || trimmed.length > 40 || seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push(trimmed);
+  }
+  return cleaned.length >= 2 ? cleaned : PRIVACY_ALIASES;
+}
+
+export function createPrivacyAliasRegistry(random = secureRandomUnit, aliases = PRIVACY_ALIASES) {
+  const availableAliases = shuffle(sanitizedAliasList(aliases), random);
   const assignments = new Map();
 
   return Object.freeze({

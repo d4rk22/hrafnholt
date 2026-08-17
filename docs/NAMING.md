@@ -18,8 +18,11 @@ has been completed.
 The former storage nickname, mountain/gate filenames and artwork, and
 24-character privacy alias list were direct or strongly thematic Tolkien
 references. They have been removed from the application candidate. Public mode
-now uses a manually selected list of 24 common botanical names, and the storage
-panel uses an original abstract storage-array SVG.
+now defaults to a manually selected list of 24 Argonaut names from the ancient
+Greek sources (Apollonius of Rhodes, Apollodorus), which are in the public
+domain; operators may configure their own roster via
+`presentation.privacy.aliases`. The storage panel uses an original
+mountain-gate SVG.
 
 Private operational history may still describe the former names because it is
 historical evidence; it is not application documentation or a release input.
