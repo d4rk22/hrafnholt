@@ -75,7 +75,7 @@ The workflow publishes two independently identified images:
 - `ghcr.io/d4rk22/hrafnholt-dashboard`; and
 - `ghcr.io/d4rk22/hrafnholt-energy`.
 
-For each private release, every image receives the immutable version tag and
+For each release, every image receives the immutable version tag and
 `sha-<full-commit>` tag, registry-native BuildKit SBOM and maximum-mode
 provenance attestations, OCI identity labels, and a registry digest. GitHub
 artifact attestations are deferred until Hrafnholt is public or read-only
