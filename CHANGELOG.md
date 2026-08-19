@@ -5,6 +5,15 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.8] - 2026-08-18
+
+### Changed
+
+- Container images are now public on GHCR. The release workflow's final job
+  inverts from requiring anonymous registry access to be denied to requiring
+  an anonymous end-to-end pull of the released tag to succeed, and the setup
+  guide documents digest-pinned deployment of the published images.
+
 ## [0.1.7] - 2026-08-17
 
 ### Changed

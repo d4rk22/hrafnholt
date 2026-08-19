@@ -96,26 +96,32 @@ jobs:
         # Registry-native attestations bind subject-digest: ${{ steps.build.outputs.digest }}
         run: printf '%s@%s\n' 'ghcr.io/d4rk22/hrafnholt-${{ matrix.component }}' '${{ steps.build.outputs.digest }}' >> "$GITHUB_STEP_SUMMARY"
 
-  verify-private-packages:
-    name: Release / verify private packages
+  verify-public-packages:
+    name: Release / verify public packages
     needs: publish
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    # Deliberately credential-free: "private" means anonymous registry access
-    # is denied. The previous check called the user-scoped packages API with
-    # the Actions installation token, which can never act as the
-    # authenticated user, so it returned 403 and failed on every release
-    # ever cut (v0.1.0 through v0.1.4) without verifying anything.
+    # Deliberately credential-free: "public" means an anonymous client can
+    # pull this run's tag end-to-end. Inverted from verify-private-packages
+    # when the packages went public with v0.1.8.
     permissions: {}
     steps:
-      - name: Require anonymous registry access to be denied
+      - name: Require anonymous pulls to succeed
         run: |
           set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
           for package in hrafnholt-dashboard hrafnholt-energy; do
+            token="$(curl -sS "https://ghcr.io/token?service=ghcr.io&scope=repository:d4rk22/${package}:pull" | jq -r '.token // empty')"
+            if [ -z "${token}" ]; then
+              echo "::error::anonymous pull-token request for ${package} failed; the package may still be private"
+              exit 1
+            fi
             status="$(curl -sS -o /dev/null -w '%{http_code}' \
-              "https://ghcr.io/token?service=ghcr.io&scope=repository:d4rk22/${package}:pull")"
-            if [ "${status}" != "401" ]; then
-              echo "::error::anonymous pull-token request for ${package} returned HTTP ${status} instead of 401; the package may be public"
+              -H "Authorization: Bearer ${token}" \
+              -H 'Accept: application/vnd.oci.image.index.v1+json' \
+              "https://ghcr.io/v2/d4rk22/${package}/manifests/${tag}")"
+            if [ "${status}" != "200" ]; then
+              echo "::error::anonymous manifest fetch for ${package}:${tag} returned HTTP ${status} instead of 200"
               exit 1
             fi
           done

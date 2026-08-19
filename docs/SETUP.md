@@ -43,6 +43,32 @@ The image contains the synthetic example configuration, so this command starts
 demo mode. A strict network-isolation smoke test may use `--network=none`; it
 will need an in-container health probe rather than a published host port.
 
+## Run a published release image
+
+Releases publish `ghcr.io/d4rk22/hrafnholt-dashboard` and
+`ghcr.io/d4rk22/hrafnholt-energy` with immutable version tags and no
+floating `latest`. Deployments use the accepted digest, not a tag
+(see [Release readiness](RELEASING.md)). Resolve the digest once:
+
+```bash
+docker buildx imagetools inspect ghcr.io/d4rk22/hrafnholt-dashboard:v0.1.8
+```
+
+then run the digest-pinned image with the same hardening as the local
+build:
+
+```bash
+docker run --rm \
+  --read-only \
+  --cap-drop=ALL \
+  --security-opt=no-new-privileges \
+  --publish 127.0.0.1:3000:3000 \
+  ghcr.io/d4rk22/hrafnholt-dashboard@sha256:<resolved digest>
+```
+
+The image starts in demo mode until `HRAFNHOLT_CONFIG` points at a real
+configuration (next section).
+
 ## Prepare live configuration
 
 Copy the example outside the source tree, set `mode: live`, remove the example

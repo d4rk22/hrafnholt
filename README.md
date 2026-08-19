@@ -7,10 +7,10 @@ same-origin browser application. An optional Python sidecar supplies energy
 data. Hrafnholt has no mutation API and demo mode needs no credentials or
 upstream network.
 
-This tree is a pre-release candidate licensed under Apache License 2.0. No
-source archive, container image, or package should be represented as an
-official Hrafnholt release until it is produced by the guarded release
-workflow from the reviewed public repository.
+Hrafnholt is licensed under Apache License 2.0. Releases produced by the
+guarded release workflow from this public repository — v0.1.8 and later — are
+official Hrafnholt releases with publicly pullable container images. Earlier
+tags predate the repository going public and remain historical.
 
 ## Quick demo
 
