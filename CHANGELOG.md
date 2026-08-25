@@ -5,6 +5,16 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.9] - 2026-08-24
+
+### Added
+
+- Release images now carry GitHub artifact attestations: the publish job
+  signs build provenance for each image's index digest with the
+  workflow's OIDC identity and pushes it to the registry, so any consumer
+  can verify origin with `gh attestation verify`. Earlier releases
+  predate attestations and remain unattested.
+
 ## [0.1.8] - 2026-08-18
 
 ### Changed

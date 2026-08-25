@@ -77,10 +77,19 @@ The workflow publishes two independently identified images:
 
 For each release, every image receives the immutable version tag and
 `sha-<full-commit>` tag, registry-native BuildKit SBOM and maximum-mode
-provenance attestations, OCI identity labels, and a registry digest. GitHub
-artifact attestations are deferred until Hrafnholt is public or read-only
-evidence proves eligibility through GitHub Enterprise Cloud. No floating
-`latest` tag is produced. Deployments use the accepted digest, not a tag.
+provenance attestations, OCI identity labels, and a registry digest. Each
+publish job also creates a GitHub artifact attestation binding the image's
+index digest to the exact workflow, repository, commit, and trigger that
+built it, signed through Sigstore with the workflow's OIDC identity and
+pushed to the registry alongside the image. Verify any release image (v0.1.9
+and later; earlier releases predate attestations and cannot be attested
+retroactively) with:
+
+```bash
+gh attestation verify oci://ghcr.io/d4rk22/hrafnholt-dashboard@sha256:<digest> --owner d4rk22
+```
+
+No floating `latest` tag is produced. Deployments use the accepted digest, not a tag.
 
 The dashboard and energy build contexts each carry the Apache license and
 applicable notice into `/usr/share/licenses/hrafnholt/` in the image.
