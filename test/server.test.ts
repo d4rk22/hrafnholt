@@ -71,6 +71,10 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.match(index.body, /Capacity headroom/);
   assert.match(index.body, /id="capacity-chart"/);
   assert.match(index.body, /id="capacity-encode-p95"/);
+  assert.match(index.body, /aria-label="Capacity time window"/);
+  assert.match(index.body, /data-capacity-window="1h"[^>]*>1H</);
+  assert.match(index.body, /data-capacity-window="1m"[^>]*aria-pressed="true"[^>]*>1M</);
+  assert.match(index.body, /Upgrade pressure · 30D/);
   assert.match(index.body, /Protection status/);
   assert.match(index.body, /id="pbs-vault"/);
   assert.equal(styles.statusCode, 200);
@@ -150,9 +154,13 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.match(client.body, /\$\{escapeHtml\(tebibytes\(datastore\.availableBytes\)\)\} free/);
   assert.doesNotMatch(client.body, /datastore\.totalBytes - datastore\.usedBytes/);
   assert.match(client.body, /renderPlexCapacity\(panel\)/);
-  assert.match(client.body, /history\.analysisSamples/);
+  assert.match(client.body, /let selectedCapacityWindow = "1m"/);
+  assert.match(client.body, /history\?\.windows\?\.\[selectedCapacityWindow\]/);
+  assert.match(client.body, /history\?\.upgradePressure30d/);
+  assert.match(client.body, /data-capacity-window/);
+  assert.match(client.body, /aria-pressed/);
   assert.match(index.body, /capacity-chart__line--decode/);
-  assert.match(index.body, /Peak 30-min GPU temp/);
+  assert.match(index.body, /id="capacity-temp-label"/);
   assert.match(client.body, /summary\.decodeP95Percent/);
   assert.match(index.body, /id="capacity-workload-chart"/);
   assert.match(index.body, /capacity-workload__line--streams/);
@@ -164,7 +172,9 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.match(client.body, /point\.sample\.streamPeak/);
   assert.match(client.body, /point\.sample\.videoTranscodePeak/);
   assert.match(client.body, /removeAttribute\("title"\)/);
-  assert.match(client.body, /half-hour samples/);
+  assert.match(client.body, /sampleIntervalLabel/);
+  assert.match(client.body, /selectedCapacityWindow === "1h"/);
+  assert.match(client.body, /"NOW"/);
   assert.doesNotMatch(client.body, /source buckets/);
   assert.match(client.body, /function restoreCapacityFocusAfterRender\(\)/);
   assert.match(client.body, /capacityPointerRatio !== null/);
@@ -173,6 +183,8 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.match(styles.body, /\.rack-load-bar i[^}]*background:\s*var\(--blue\)/);
   assert.doesNotMatch(styles.body, /\.rack-load-row:nth-child\([^)]*\) \.rack-load-bar i/);
   assert.match(styles.body, /\.capacity-chart__pressure-zone/);
+  assert.match(styles.body, /\.capacity-window__button:focus-visible/);
+  assert.match(styles.body, /\.capacity-window__button\.is-active/);
   assert.match(styles.body, /\.dashboard-grid\[data-view="compute"\] \.panel--plex-capacity/);
   await app.close();
 });

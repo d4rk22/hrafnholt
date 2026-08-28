@@ -31,11 +31,19 @@ const DEFAULT_CONFIGURATION = Object.freeze({
 const TRAFFIC_PLOT = { left: 78, right: 299, baseline: 39, downloadTop: 6, downloadZero: 36, uploadZero: 42, uploadBottom: 72 };
 const CAPACITY_PLOT = { left: 48, right: 696, top: 16, bottom: 164 };
 const WORKLOAD_PLOT = { left: 48, right: 696, top: 8, bottom: 62 };
+const CAPACITY_WINDOWS = Object.freeze({
+  "1h": { eyebrow: "NETDATA · LAST 1 HOUR", label: "one hour", axis: "clock" },
+  "1d": { eyebrow: "NETDATA · LAST 24 HOURS", label: "24 hours", axis: "clock" },
+  "1w": { eyebrow: "NETDATA · ROLLING 7 DAYS", label: "seven days", axis: "date" },
+  "1m": { eyebrow: "NETDATA · ROLLING 30 DAYS", label: "30 days", axis: "date" },
+});
 let trafficPoints = [];
 let trafficFocusIndex = -1;
 let capacityPoints = [];
 let capacityFocusIndex = -1;
 let capacityPointerRatio = null;
+let selectedCapacityWindow = "1m";
+let latestCapacityPanel = null;
 let currentEpisodesPanel = null;
 let currentEpisodeDate = null;
 let selectedEpisodeDate = null;
@@ -229,6 +237,64 @@ function steppedCapacityPath(points, key) {
   return path;
 }
 
+function sampleIntervalLabel(bucketSeconds) {
+  const seconds = Math.max(1, Math.round(Number(bucketSeconds ?? 0)));
+  if (seconds < 60) return `${number(seconds)}-second`;
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  if (minutes < 60) return `${number(minutes)}-minute`;
+  const hours = Math.max(1, Math.round(minutes / 60));
+  return hours === 1 ? "hourly" : `${number(hours)}-hour`;
+}
+
+function capacityAxisTimestamp(value, mode) {
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) return "—";
+  if (mode === "clock") return timestamp.toLocaleTimeString(presentation.locale, {
+    timeZone: presentation.timezone,
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return timestamp.toLocaleDateString(presentation.locale, {
+    timeZone: presentation.timezone,
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function renderCapacityXAxis(history) {
+  const labels = ["—", "—", "—", "—", "—"];
+  const from = history ? Date.parse(history.sampledFrom) : Number.NaN;
+  const to = history ? Date.parse(history.sampledTo) : Number.NaN;
+  if (Number.isFinite(from) && Number.isFinite(to)) {
+    const mode = CAPACITY_WINDOWS[selectedCapacityWindow].axis;
+    labels.splice(0, labels.length, ...[0, .25, .5, .75, 1].map((ratio) => capacityAxisTimestamp(from + (to - from) * ratio, mode)));
+    if (selectedCapacityWindow === "1h") labels[4] = "NOW";
+  }
+  document.querySelectorAll("#capacity-x-axis span").forEach((label, index) => {
+    label.textContent = labels[index] ?? "—";
+  });
+}
+
+function capacityPeakTime(value) {
+  const mode = selectedCapacityWindow === "1h" || selectedCapacityWindow === "1d" ? "clock" : "date";
+  return capacityAxisTimestamp(value, mode);
+}
+
+function updateCapacityWindowControls() {
+  document.querySelectorAll("[data-capacity-window]").forEach((button) => {
+    const active = button.dataset.capacityWindow === selectedCapacityWindow;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function selectCapacityWindow(windowKey) {
+  if (!Object.hasOwn(CAPACITY_WINDOWS, windowKey) || windowKey === selectedCapacityWindow) return;
+  selectedCapacityWindow = windowKey;
+  updateCapacityWindowControls();
+  if (latestCapacityPanel) renderPlexCapacity(latestCapacityPanel);
+}
+
 function hideCapacityFocus() {
   document.querySelector("#capacity-chart .capacity-chart__focus")?.toggleAttribute("hidden", true);
   document.querySelector("#capacity-workload-chart .capacity-workload__focus")?.toggleAttribute("hidden", true);
@@ -269,7 +335,11 @@ function setCapacityFocus(index, announce = false) {
   });
   const sampledAt = new Date(point.sample.sampledAt);
   const time = Number.isNaN(sampledAt.getTime()) ? "Time unavailable" : sampledAt.toLocaleString(presentation.locale, {
-    timeZone: presentation.timezone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+    timeZone: presentation.timezone,
+    ...(selectedCapacityWindow === "1h" ? {} : { month: "short", day: "numeric" }),
+    hour: "numeric",
+    minute: "2-digit",
+    ...(selectedCapacityWindow === "1h" ? { second: "2-digit" } : {}),
   });
   const workloadRows = hasWorkload
     ? `<span class="capacity-tooltip__workload capacity-tooltip__streams">Streams avg ${escapeHtml(countValue(point.sample.streamAverage, 1))} · peak ${escapeHtml(countValue(point.sample.streamPeak))}</span><span class="capacity-tooltip__workload capacity-tooltip__video-transcodes">Video transcodes avg ${escapeHtml(countValue(point.sample.videoTranscodeAverage, 1))} · peak ${escapeHtml(countValue(point.sample.videoTranscodePeak))}</span>`
@@ -298,12 +368,17 @@ function restoreCapacityFocusAfterRender() {
 }
 
 function renderPlexCapacity(panel) {
+  latestCapacityPanel = panel;
   setPanelState(".panel--plex-capacity", panel);
   document.querySelector(".panel--plex-capacity")?.removeAttribute("title");
+  updateCapacityWindowControls();
+  const windowCopy = CAPACITY_WINDOWS[selectedCapacityWindow];
+  setText("#capacity-eyebrow", windowCopy.eyebrow);
   const chart = document.querySelector("#capacity-chart");
   const workloadChart = document.querySelector("#capacity-workload-chart");
   const history = panel.data?.history;
-  const samples = (history?.points ?? []).filter((sample) => sample && [sample.encodePercent, sample.decodePercent, sample.cpuPercent, sample.ramPercent, sample.vramPercent].every(Number.isFinite));
+  const selectedHistory = history?.windows?.[selectedCapacityWindow];
+  const samples = selectedHistory?.points ?? [];
   const span = CAPACITY_PLOT.right - CAPACITY_PLOT.left;
   const workloadValues = samples.flatMap((sample) => [sample.streamAverage, sample.streamPeak, sample.videoTranscodeAverage, sample.videoTranscodePeak]).filter(Number.isFinite);
   const workloadMaximum = Math.max(1, Math.ceil(Math.max(0, ...workloadValues)));
@@ -329,42 +404,45 @@ function renderPlexCapacity(panel) {
   document.querySelector("#capacity-workload-empty")?.toggleAttribute("hidden", workloadSamples.length > 0);
   document.querySelector("#capacity-empty")?.toggleAttribute("hidden", samples.length > 0);
 
-  const summary = history?.summary;
+  const summary = selectedHistory?.summary;
   setText("#capacity-encode-p95", summary ? percent(summary.encodeP95Percent) : "—");
   setText("#capacity-decode-p95", summary ? percent(summary.decodeP95Percent) : "—");
   setText("#capacity-cpu-p95", summary ? percent(summary.cpuP95Percent) : "—");
   setText("#capacity-ram-peak", summary ? percent(summary.ramPeakPercent) : "—");
+  setText("#capacity-ram-detail", summary ? `Peak · ${capacityPeakTime(summary.ramPeakAt)}` : "peak used");
   setText("#capacity-vram-peak", summary ? percent(summary.vramPeakPercent) : "—");
+  setText("#capacity-vram-detail", summary ? `Peak · ${capacityPeakTime(summary.vramPeakAt)}` : "peak used");
   setText("#capacity-temp-peak", summary ? `${number(temperature(summary.temperaturePeakC))}${temperatureSuffix()}` : "—");
+  const intervalLabel = selectedHistory ? sampleIntervalLabel(selectedHistory.bucketSeconds) : null;
+  setText("#capacity-temp-label", intervalLabel ? `Peak ${intervalLabel} GPU temp` : "Peak GPU temp");
+  setText("#capacity-temp-detail", summary ? `Highest · ${capacityPeakTime(summary.temperaturePeakAt)}` : "highest sustained average");
+  setText("#capacity-workload-interval", intervalLabel ? `${intervalLabel} average concurrency` : "average concurrency");
+  document.querySelector("#capacity-summary")?.setAttribute("aria-label", `${windowCopy.label} Plex capacity summary`);
   const constraintLabels = { gpu_encoder: "GPU encoder", cpu: "CPU", host_ram: "host RAM", vram: "VRAM", cooling: "cooling" };
   const pressureLabels = { comfortable: "comfortable", watch: "watch", pressured: "review" };
-  setText("#capacity-state", summary ? pressureLabels[summary.pressure] : "waiting");
-  setText("#capacity-constraint", summary ? (summary.constraint ? `${constraintLabels[summary.constraint]} leads` : "no sustained limit") : "history not loaded");
+  const pressure = history?.upgradePressure30d;
+  setText("#capacity-state", pressure ? pressureLabels[pressure.pressure] : "waiting");
+  setText("#capacity-constraint", pressure ? (pressure.constraint ? `${constraintLabels[pressure.constraint]} leads` : "no sustained limit") : "30-day history not loaded");
   const verdict = document.querySelector("#capacity-verdict");
-  verdict?.setAttribute("data-pressure", summary?.pressure ?? "unavailable");
+  verdict?.setAttribute("data-pressure", pressure?.pressure ?? "unavailable");
 
-  const from = history ? new Date(history.sampledFrom) : null;
-  const to = history ? new Date(history.sampledTo) : null;
-  const dateLabel = (date) => date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString(presentation.locale, { timeZone: presentation.timezone, month: "short", day: "numeric" }) : "—";
-  setText("#capacity-from", dateLabel(from));
-  setText("#capacity-to", dateLabel(to));
+  const from = selectedHistory ? new Date(selectedHistory.sampledFrom) : null;
+  const to = selectedHistory ? new Date(selectedHistory.sampledTo) : null;
+  renderCapacityXAxis(selectedHistory);
   const coverageSeconds = from && to ? Math.max(0, (to.getTime() - from.getTime()) / 1_000) : 0;
   const coverageAmount = coverageSeconds >= 86_400
     ? `${number(coverageSeconds / 86_400, coverageSeconds < 864_000 ? 1 : 0)} days`
-    : coverageSeconds ? `${number(coverageSeconds / 3_600, 1)} hours` : "waiting for history";
+    : coverageSeconds >= 3_600 ? `${number(coverageSeconds / 3_600, 1)} hours`
+      : coverageSeconds ? `${number(coverageSeconds / 60, 1)} minutes` : "waiting for history";
   const coverageLabel = coverageSeconds ? `${coverageAmount} of history` : coverageAmount;
-  const intervalMinutes = Number(history?.bucketSeconds ?? 0) / 60;
-  const intervalLabel = intervalMinutes === 30
-    ? "half-hour"
-    : intervalMinutes === 60 ? "hourly" : `${number(intervalMinutes)}-minute`;
-  setText("#capacity-analysis", history ? `${number(history.analysisSamples)} ${intervalLabel} samples · ${coverageLabel}` : "Netdata history");
-  setText("#capacity-updated", updatedAgeLabel(panel));
+  setText("#capacity-analysis", selectedHistory ? `${number(selectedHistory.analysisSamples)} ${intervalLabel} samples · ${coverageLabel}` : `${windowCopy.label} history collecting`);
+  setText("#capacity-updated", selectedHistory ? `through ${shortTimestamp(selectedHistory.sampledTo)}` : "not collected");
   const workloadDescription = workloadSamples.length
-    ? ` Workload context is available for ${number(workloadSamples.length)} half-hour samples; use pointer or arrow keys for average and peak concurrent stream counts.`
-    : " Workload context is collecting from deployment and does not affect upgrade pressure.";
+    ? ` Workload context is available for ${number(workloadSamples.length)} ${intervalLabel} display samples; use pointer or arrow keys for average and peak concurrent stream counts.`
+    : " Workload context is collecting from deployment and does not affect the 30-day upgrade signal.";
   chart?.setAttribute("aria-label", summary
-    ? `Plex capacity history over ${coverageLabel}. GPU encoder 95th percentile ${number(summary.encodeP95Percent)} percent, GPU decoder 95th percentile ${number(summary.decodeP95Percent)} percent, CPU 95th percentile ${number(summary.cpuP95Percent)} percent, peak host memory ${number(summary.ramPeakPercent)} percent, and peak video memory ${number(summary.vramPeakPercent)} percent.${workloadDescription}`
-    : "Plex capacity history unavailable. Live telemetry remains available separately.");
+    ? `Plex capacity history for ${windowCopy.label} over ${coverageLabel}. GPU encoder 95th percentile ${number(summary.encodeP95Percent)} percent, GPU decoder 95th percentile ${number(summary.decodeP95Percent)} percent, CPU 95th percentile ${number(summary.cpuP95Percent)} percent, peak host memory ${number(summary.ramPeakPercent)} percent, and peak video memory ${number(summary.vramPeakPercent)} percent.${workloadDescription}`
+    : `Plex capacity history for ${windowCopy.label} is unavailable. Live telemetry remains available separately.`);
   restoreCapacityFocusAfterRender();
 }
 
@@ -394,6 +472,13 @@ function initializeCapacityChart() {
     event.preventDefault();
     setCapacityFocus((capacityFocusIndex < 0 ? capacityPoints.length - 1 : capacityFocusIndex) + (event.key === "ArrowLeft" ? -1 : 1), true);
   });
+}
+
+function initializeCapacityWindowSelector() {
+  document.querySelectorAll("[data-capacity-window]").forEach((button) => {
+    button.addEventListener("click", () => selectCapacityWindow(button.dataset.capacityWindow));
+  });
+  updateCapacityWindowControls();
 }
 
 function renderHeadline(snapshot) {
@@ -1077,6 +1162,7 @@ function initializeInteractions() {
   initializePrivacyMode();
   initializeTrafficChart();
   initializeCapacityChart();
+  initializeCapacityWindowSelector();
   document.querySelectorAll(".view-button").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
   document.querySelector("#episodes-previous-day")?.addEventListener("click", () => void navigateEpisodes(-1));
   document.querySelector("#episodes-next-day")?.addEventListener("click", () => void navigateEpisodes(1));

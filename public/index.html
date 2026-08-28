@@ -241,10 +241,19 @@
         </section>
 
         <section class="panel panel--plex-capacity view-panel" data-category="compute" aria-labelledby="plex-capacity-title">
-          <header class="panel-header panel-header--tight">
-            <div><p class="eyebrow">NETDATA · ROLLING 30 DAYS</p><h2 id="plex-capacity-title">Capacity headroom</h2></div>
+          <header class="panel-header panel-header--tight capacity-header">
+            <div><p class="eyebrow" id="capacity-eyebrow">NETDATA · ROLLING 30 DAYS</p><h2 id="plex-capacity-title">Capacity headroom</h2></div>
+            <div class="capacity-window">
+              <span class="capacity-window__label">TIME WINDOW</span>
+              <div class="capacity-window__segments" role="group" aria-label="Capacity time window">
+                <button class="capacity-window__button" type="button" data-capacity-window="1h" aria-pressed="false">1H</button>
+                <button class="capacity-window__button" type="button" data-capacity-window="1d" aria-pressed="false">1D</button>
+                <button class="capacity-window__button" type="button" data-capacity-window="1w" aria-pressed="false">1W</button>
+                <button class="capacity-window__button is-active" type="button" data-capacity-window="1m" aria-pressed="true">1M</button>
+              </div>
+            </div>
             <div class="capacity-verdict" id="capacity-verdict" data-pressure="unavailable">
-              <span>Upgrade pressure</span><strong id="capacity-state">waiting</strong><small id="capacity-constraint">history not loaded</small>
+              <span>Upgrade pressure · 30D</span><strong id="capacity-state">waiting</strong><small id="capacity-constraint">history not loaded</small>
             </div>
           </header>
           <div class="capacity-chart-shell">
@@ -294,7 +303,7 @@
             </div>
             <div class="capacity-workload" aria-label="Workload context, average concurrent streams and video transcodes">
               <div class="capacity-workload__header">
-                <span>Workload context <small>30-min average concurrency</small></span>
+                <span>Workload context <small id="capacity-workload-interval">30-minute average concurrency</small></span>
                 <div class="capacity-workload__legend" aria-hidden="true">
                   <span><i class="capacity-swatch capacity-swatch--streams"></i>All streams</span>
                   <span><i class="capacity-swatch capacity-swatch--video-transcodes"></i>Video transcodes</span>
@@ -324,17 +333,17 @@
                 <div class="capacity-workload__empty" id="capacity-workload-empty">Collecting from deployment</div>
               </div>
             </div>
-            <div class="capacity-x-axis" aria-hidden="true"><span id="capacity-from">—</span><span>30-day source window</span><span id="capacity-to">—</span></div>
+            <div class="capacity-x-axis" id="capacity-x-axis" aria-hidden="true"><span>—</span><span>—</span><span>—</span><span>—</span><span>—</span></div>
             <div class="capacity-tooltip" id="capacity-tooltip" hidden></div>
             <div class="capacity-empty" id="capacity-empty">Waiting for retained Netdata samples. Live telemetry is unaffected.</div>
           </div>
-          <div class="capacity-summary" aria-label="Thirty-day Plex capacity summary">
+          <div class="capacity-summary" id="capacity-summary" aria-label="Thirty-day Plex capacity summary">
             <div><span>GPU encode</span><strong id="capacity-encode-p95">—</strong><small>95th percentile</small></div>
             <div><span>GPU decode</span><strong id="capacity-decode-p95">—</strong><small>95th percentile</small></div>
             <div><span>CPU</span><strong id="capacity-cpu-p95">—</strong><small>95th percentile</small></div>
-            <div><span>Host RAM</span><strong id="capacity-ram-peak">—</strong><small>peak used</small></div>
-            <div><span>VRAM</span><strong id="capacity-vram-peak">—</strong><small>peak used</small></div>
-            <div><span>Peak 30-min GPU temp</span><strong id="capacity-temp-peak">—</strong><small>highest sustained average</small></div>
+            <div><span>Host RAM</span><strong id="capacity-ram-peak">—</strong><small id="capacity-ram-detail">peak used</small></div>
+            <div><span>VRAM</span><strong id="capacity-vram-peak">—</strong><small id="capacity-vram-detail">peak used</small></div>
+            <div><span id="capacity-temp-label">Peak GPU temp</span><strong id="capacity-temp-peak">—</strong><small id="capacity-temp-detail">highest sustained average</small></div>
           </div>
           <footer class="panel-footer capacity-footer"><span id="capacity-analysis">Netdata history</span><span id="capacity-updated">not collected</span></footer>
         </section>
