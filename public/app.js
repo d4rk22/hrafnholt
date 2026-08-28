@@ -280,6 +280,10 @@ function capacityPeakTime(value) {
   return capacityAxisTimestamp(value, mode);
 }
 
+function coverageQuantity(value, unit, digits = 0) {
+  return `${number(value, digits)} ${Math.abs(value - 1) < .001 ? unit : `${unit}s`}`;
+}
+
 function updateCapacityWindowControls() {
   document.querySelectorAll("[data-capacity-window]").forEach((button) => {
     const active = button.dataset.capacityWindow === selectedCapacityWindow;
@@ -431,9 +435,9 @@ function renderPlexCapacity(panel) {
   renderCapacityXAxis(selectedHistory);
   const coverageSeconds = from && to ? Math.max(0, (to.getTime() - from.getTime()) / 1_000) : 0;
   const coverageAmount = coverageSeconds >= 86_400
-    ? `${number(coverageSeconds / 86_400, coverageSeconds < 864_000 ? 1 : 0)} days`
-    : coverageSeconds >= 3_600 ? `${number(coverageSeconds / 3_600, 1)} hours`
-      : coverageSeconds ? `${number(coverageSeconds / 60, 1)} minutes` : "waiting for history";
+    ? coverageQuantity(coverageSeconds / 86_400, "day", coverageSeconds < 864_000 ? 1 : 0)
+    : coverageSeconds >= 3_600 ? coverageQuantity(coverageSeconds / 3_600, "hour", 1)
+      : coverageSeconds ? coverageQuantity(coverageSeconds / 60, "minute", 1) : "waiting for history";
   const coverageLabel = coverageSeconds ? `${coverageAmount} of history` : coverageAmount;
   setText("#capacity-analysis", selectedHistory ? `${number(selectedHistory.analysisSamples)} ${intervalLabel} samples · ${coverageLabel}` : `${windowCopy.label} history collecting`);
   setText("#capacity-updated", selectedHistory ? `through ${shortTimestamp(selectedHistory.sampledTo)}` : "not collected");
