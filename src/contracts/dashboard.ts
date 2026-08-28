@@ -46,7 +46,7 @@ export const bandwidthDataSchema = z.object({
   })).max(48),
 });
 
-export const plexHostHistorySchema = z.object({
+export const plexHostHistoryWindowSchema = z.object({
   requestedWindowSeconds: z.number().int().positive(),
   sampledFrom: z.iso.datetime(),
   sampledTo: z.iso.datetime(),
@@ -70,11 +70,27 @@ export const plexHostHistorySchema = z.object({
     decodeP95Percent: z.number().min(0).max(100),
     cpuP95Percent: z.number().min(0).max(100),
     ramPeakPercent: z.number().min(0).max(100),
+    ramPeakAt: z.iso.datetime(),
     vramPeakPercent: z.number().min(0).max(100),
+    vramPeakAt: z.iso.datetime(),
     temperaturePeakC: z.number(),
-    pressure: z.enum(["comfortable", "watch", "pressured"]),
-    constraint: z.enum(["gpu_encoder", "cpu", "host_ram", "vram", "cooling"]).nullable(),
+    temperaturePeakAt: z.iso.datetime(),
   }),
+});
+
+export const plexUpgradePressure30dSchema = z.object({
+  pressure: z.enum(["comfortable", "watch", "pressured"]),
+  constraint: z.enum(["gpu_encoder", "cpu", "host_ram", "vram", "cooling"]).nullable(),
+});
+
+export const plexHostHistorySchema = z.object({
+  windows: z.object({
+    "1h": plexHostHistoryWindowSchema.nullable(),
+    "1d": plexHostHistoryWindowSchema.nullable(),
+    "1w": plexHostHistoryWindowSchema.nullable(),
+    "1m": plexHostHistoryWindowSchema.nullable(),
+  }),
+  upgradePressure30d: plexUpgradePressure30dSchema.nullable(),
 });
 
 export const plexHostDataSchema = z.object({

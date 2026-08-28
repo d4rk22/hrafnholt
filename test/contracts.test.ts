@@ -38,8 +38,16 @@ test("movie shelf contract accepts 16 recent additions and rejects a seventeenth
 
 test("Plex capacity history contract rejects more than 240 display points", async () => {
   const fixture = JSON.parse(await readFile(new URL("../fixtures/dashboard-snapshot.json", import.meta.url), "utf8"));
-  const sample = fixture.panels.plexHost.data.history.points[0];
-  fixture.panels.plexHost.data.history.points = Array.from({ length: 241 }, () => ({ ...sample }));
+  const month = fixture.panels.plexHost.data.history.windows["1m"];
+  const sample = month.points[0];
+  month.points = Array.from({ length: 241 }, () => ({ ...sample }));
+  assert.equal(dashboardSnapshotSchema.safeParse(fixture).success, false);
+});
+
+test("Plex capacity history contract requires four bounded windows and an explicit 30-day verdict", async () => {
+  const fixture = JSON.parse(await readFile(new URL("../fixtures/dashboard-snapshot.json", import.meta.url), "utf8"));
+  assert.equal(dashboardSnapshotSchema.safeParse(fixture).success, true);
+  delete fixture.panels.plexHost.data.history.windows["1h"];
   assert.equal(dashboardSnapshotSchema.safeParse(fixture).success, false);
 });
 
