@@ -4,8 +4,10 @@ import { boundedText, fetchJson, finiteNumber, type Collector, type JsonRequest 
 type UnknownRecord = Record<string, unknown>;
 type MetricRequest = { chart: string; dimension: string };
 type NumericPoint = { sampledAt: number; value: number };
-type PlexHistory = NonNullable<PanelData<"plexHost">["history"]>;
-type PlexHistoryPoint = PlexHistory["points"][number];
+type PlexHistoryContainer = NonNullable<PanelData<"plexHost">["history"]>;
+type PlexHistoryWindow = NonNullable<PlexHistoryContainer["windows"]["1m"]>;
+type PlexHistoryPoint = PlexHistoryWindow["points"][number];
+type PlexUpgradePressure30d = NonNullable<PlexHistoryContainer["upgradePressure30d"]>;
 
 const NETDATA_METRIC_KEYS = [
   "gpuPercent",
@@ -47,10 +49,15 @@ export type NetdataCollectorOptions = {
   hostLabel?: string;
 };
 
-const HISTORY_WINDOW_SECONDS = 30 * 24 * 60 * 60;
-const HISTORY_ANALYSIS_POINTS = 1_440;
+export const NETDATA_HISTORY_RANGES = {
+  "1h": { windowSeconds: 60 * 60, analysisPoints: 240, refreshMs: 45_000 },
+  "1d": { windowSeconds: 24 * 60 * 60, analysisPoints: 288, refreshMs: 5 * 60 * 1_000 },
+  "1w": { windowSeconds: 7 * 24 * 60 * 60, analysisPoints: 336, refreshMs: 5 * 60 * 1_000 },
+  "1m": { windowSeconds: 30 * 24 * 60 * 60, analysisPoints: 1_440, refreshMs: 5 * 60 * 1_000 },
+} as const;
+export type NetdataHistoryRangeKey = keyof typeof NETDATA_HISTORY_RANGES;
+const NETDATA_HISTORY_RANGE_KEYS = Object.keys(NETDATA_HISTORY_RANGES) as NetdataHistoryRangeKey[];
 const HISTORY_DISPLAY_POINTS = 240;
-const HISTORY_REFRESH_MS = 5 * 60 * 1_000;
 const HISTORY_TIMEOUT_MS = 10_000;
 const HISTORY_METRIC_KEYS = [
   "encodePercent",
@@ -123,10 +130,11 @@ function percentile(values: number[], percentileValue: number): number {
 
 function downsampleHistory(points: PlexHistoryPoint[], limit: number): PlexHistoryPoint[] {
   if (points.length <= limit) return points;
-  const bucketSize = Math.ceil(points.length / limit);
   const result: PlexHistoryPoint[] = [];
-  for (let index = 0; index < points.length; index += bucketSize) {
-    const bucket = points.slice(index, index + bucketSize);
+  for (let bucketIndex = 0; bucketIndex < limit; bucketIndex += 1) {
+    const start = Math.floor(bucketIndex * points.length / limit);
+    const end = Math.max(start + 1, Math.floor((bucketIndex + 1) * points.length / limit));
+    const bucket = points.slice(start, end);
     const average = (key: "encodePercent" | "decodePercent" | "cpuPercent" | "ramPercent" | "vramPercent" | "temperatureC") => bucket.reduce((sum, point) => sum + point[key], 0) / bucket.length;
     const nullableValues = (key: "streamAverage" | "streamPeak" | "videoTranscodeAverage" | "videoTranscodePeak") => bucket
       .map((point) => point[key])
@@ -160,7 +168,9 @@ export function normalizeNetdataHistory(
   metrics: Record<string, unknown>,
   dimensions: NetdataMetricDimensions = DEFAULT_METRIC_DIMENSIONS,
   historyStartSeconds = Number.NEGATIVE_INFINITY,
-): PlexHistory | null {
+  range: NetdataHistoryRangeKey = "1m",
+): PlexHistoryWindow | null {
+  const rangeConfig = NETDATA_HISTORY_RANGES[range];
   const series = Object.fromEntries(HISTORY_METRIC_KEYS.map((key) => [key, extractNetdataSeries(metrics[key], dimensions[key])])) as Record<typeof HISTORY_METRIC_KEYS[number], NumericPoint[]>;
   const workloadAverageStreams = extractNetdataSeries(metrics.workloadAverage, ["streams", "all streams"]);
   const workloadAverageVideoTranscodes = extractNetdataSeries(metrics.workloadAverage, ["video_transcodes", "video transcodes"]);
@@ -170,7 +180,7 @@ export function normalizeNetdataHistory(
     ({ sampledAt }) => sampledAt >= historyStartSeconds,
   );
   if (encoder.length === 0) return null;
-  const toleranceSeconds = Math.ceil(HISTORY_WINDOW_SECONDS / HISTORY_ANALYSIS_POINTS);
+  const toleranceSeconds = Math.ceil(rangeConfig.windowSeconds / rangeConfig.analysisPoints);
   const workloadToleranceSeconds = Math.max(1, Math.floor(toleranceSeconds / 2));
   const analysis = encoder.flatMap(({ sampledAt, value: encodePercent }) => {
     const decodePercent = nearestValue(series.decodePercent, sampledAt, toleranceSeconds);
@@ -207,24 +217,17 @@ export function normalizeNetdataHistory(
   const ramPeakPercent = Math.max(...analysis.map((point) => point.ramPercent));
   const vramPeakPercent = Math.max(...analysis.map((point) => point.vramPercent));
   const temperaturePeakC = Math.max(...analysis.map((point) => point.temperatureC));
-  const constraints = [
-    { constraint: "gpu_encoder" as const, value: encodeP95Percent, watch: 60, review: 80 },
-    { constraint: "cpu" as const, value: cpuP95Percent, watch: 65, review: 80 },
-    { constraint: "host_ram" as const, value: ramPeakPercent, watch: 75, review: 90 },
-    { constraint: "vram" as const, value: vramPeakPercent, watch: 75, review: 90 },
-    { constraint: "cooling" as const, value: temperaturePeakC, watch: 75, review: 85 },
-  ].map((candidate) => ({ ...candidate, score: candidate.value / candidate.review }));
-  const pressured = constraints.filter((candidate) => candidate.value >= candidate.review).sort((left, right) => right.score - left.score);
-  const watching = constraints.filter((candidate) => candidate.value >= candidate.watch).sort((left, right) => right.score - left.score);
-  const pressure = pressured.length ? "pressured" : watching.length ? "watch" : "comfortable";
-  const leading = pressured[0] ?? watching[0] ?? null;
+  const peakAt = (key: "ramPercent" | "vramPercent" | "temperatureC") => analysis.reduce(
+    (peak, point) => point[key] >= peak[key] ? point : peak,
+    analysis[0]!,
+  ).sampledAt;
   const firstTimestamp = Date.parse(analysis[0]!.sampledAt);
   const lastTimestamp = Date.parse(analysis.at(-1)!.sampledAt);
   const bucketSeconds = analysis.length > 1
     ? Math.max(1, Math.round((lastTimestamp - firstTimestamp) / (analysis.length - 1) / 1_000))
-    : HISTORY_WINDOW_SECONDS;
+    : rangeConfig.windowSeconds;
   return {
-    requestedWindowSeconds: HISTORY_WINDOW_SECONDS,
+    requestedWindowSeconds: rangeConfig.windowSeconds,
     sampledFrom: analysis[0]!.sampledAt,
     sampledTo: analysis.at(-1)!.sampledAt,
     bucketSeconds,
@@ -235,12 +238,27 @@ export function normalizeNetdataHistory(
       decodeP95Percent,
       cpuP95Percent,
       ramPeakPercent,
+      ramPeakAt: peakAt("ramPercent"),
       vramPeakPercent,
+      vramPeakAt: peakAt("vramPercent"),
       temperaturePeakC,
-      pressure,
-      constraint: leading?.constraint ?? null,
+      temperaturePeakAt: peakAt("temperatureC"),
     },
   };
+}
+
+export function deriveUpgradePressure30d(summary: PlexHistoryWindow["summary"]): PlexUpgradePressure30d {
+  const constraints = [
+    { constraint: "gpu_encoder" as const, value: summary.encodeP95Percent, watch: 60, review: 80 },
+    { constraint: "cpu" as const, value: summary.cpuP95Percent, watch: 65, review: 80 },
+    { constraint: "host_ram" as const, value: summary.ramPeakPercent, watch: 75, review: 90 },
+    { constraint: "vram" as const, value: summary.vramPeakPercent, watch: 75, review: 90 },
+    { constraint: "cooling" as const, value: summary.temperaturePeakC, watch: 75, review: 85 },
+  ].map((candidate) => ({ ...candidate, score: candidate.value / candidate.review }));
+  const pressured = constraints.filter((candidate) => candidate.value >= candidate.review).sort((left, right) => right.score - left.score);
+  const watching = constraints.filter((candidate) => candidate.value >= candidate.watch).sort((left, right) => right.score - left.score);
+  const pressure = pressured.length ? "pressured" : watching.length ? "watch" : "comfortable";
+  return { pressure, constraint: (pressured[0] ?? watching[0])?.constraint ?? null };
 }
 
 export function extractNetdataDimension(input: unknown, dimension: string): number {
@@ -279,7 +297,7 @@ export function normalizeNetdata(
   metrics: Record<string, unknown>,
   host: string,
   info: unknown,
-  history: PlexHistory | null = null,
+  history: PlexHistoryContainer | null = null,
   options: {
     dimensions?: NetdataMetricDimensions;
     gpuName?: string;
@@ -330,22 +348,26 @@ export function createNetdataCollector(
   const historyStartSeconds = options.workload?.startAt
     ? Date.parse(options.workload.startAt) / 1_000
     : Number.NEGATIVE_INFINITY;
-  let historyCache: PlexHistory | null = null;
-  let workloadSourceCache: { average: unknown | null; peak: unknown | null } = { average: null, peak: null };
-  let historyLastAttemptAt = 0;
-  let historyRefresh: Promise<void> | null = null;
+  const historyCache: Partial<Record<NetdataHistoryRangeKey, PlexHistoryWindow>> = {};
+  const workloadSourceCache = Object.fromEntries(NETDATA_HISTORY_RANGE_KEYS.map((range) => [range, {
+    average: null,
+    peak: null,
+  }])) as Record<NetdataHistoryRangeKey, { average: unknown | null; peak: unknown | null }>;
+  const historyLastAttemptAt = Object.fromEntries(NETDATA_HISTORY_RANGE_KEYS.map((range) => [range, 0])) as Record<NetdataHistoryRangeKey, number>;
+  const historyRefresh: Partial<Record<NetdataHistoryRangeKey, Promise<void>>> = {};
 
-  const startHistoryRefresh = (attemptedAt: number): void => {
-    if (historyRefresh) return;
-    historyLastAttemptAt = attemptedAt;
+  const startHistoryRefresh = (range: NetdataHistoryRangeKey, attemptedAt: number): void => {
+    if (historyRefresh[range]) return;
+    historyLastAttemptAt[range] = attemptedAt;
+    const rangeConfig = NETDATA_HISTORY_RANGES[range];
     const signal = AbortSignal.timeout(HISTORY_TIMEOUT_MS);
-    historyRefresh = (async () => {
+    historyRefresh[range] = (async () => {
       const historyCharts = [...new Set(HISTORY_METRIC_KEYS.map((key) => options.metrics[key].chart))];
       const historyEntries = await Promise.all(historyCharts.map(async (chart) => {
         const url = new URL("/api/v1/data", baseUrl);
         url.searchParams.set("chart", chart);
-        url.searchParams.set("after", `-${HISTORY_WINDOW_SECONDS}`);
-        url.searchParams.set("points", String(HISTORY_ANALYSIS_POINTS));
+        url.searchParams.set("after", `-${rangeConfig.windowSeconds}`);
+        url.searchParams.set("points", String(rangeConfig.analysisPoints));
         url.searchParams.set("group", "average");
         url.searchParams.set("format", "json");
         return [chart, await configuredRequest(url.toString(), { signal, headers: { accept: "application/json" } })];
@@ -354,8 +376,8 @@ export function createNetdataCollector(
         if (!options.workload) return null;
         const url = new URL("/api/v1/data", baseUrl);
         url.searchParams.set("chart", options.workload.chart);
-        url.searchParams.set("after", `-${HISTORY_WINDOW_SECONDS}`);
-        url.searchParams.set("points", String(HISTORY_ANALYSIS_POINTS));
+        url.searchParams.set("after", `-${rangeConfig.windowSeconds}`);
+        url.searchParams.set("points", String(rangeConfig.analysisPoints));
         url.searchParams.set("group", group);
         url.searchParams.set("format", "json");
         try {
@@ -368,24 +390,39 @@ export function createNetdataCollector(
         workloadRequest("average"),
         workloadRequest("max"),
       ]);
-      workloadSourceCache = {
-        average: workloadAverage ?? workloadSourceCache.average,
-        peak: workloadPeak ?? workloadSourceCache.peak,
+      workloadSourceCache[range] = {
+        average: workloadAverage ?? workloadSourceCache[range].average,
+        peak: workloadPeak ?? workloadSourceCache[range].peak,
       };
       const historyResponses = Object.fromEntries(historyEntries);
       const historyMetrics = {
         ...Object.fromEntries(HISTORY_METRIC_KEYS.map((key) => [key, historyResponses[options.metrics[key].chart]])),
-        workloadAverage: workloadSourceCache.average,
-        workloadPeak: workloadSourceCache.peak,
+        workloadAverage: workloadSourceCache[range].average,
+        workloadPeak: workloadSourceCache[range].peak,
       };
-      historyCache = normalizeNetdataHistory(historyMetrics, dimensions, historyStartSeconds);
+      const normalized = normalizeNetdataHistory(historyMetrics, dimensions, historyStartSeconds, range);
+      if (normalized) historyCache[range] = normalized;
     })()
       .catch(() => {
         // Historical capacity is additive. Preserve live telemetry and any prior history on failure.
       })
       .finally(() => {
-        historyRefresh = null;
+        delete historyRefresh[range];
       });
+  };
+
+  const cachedHistory = (): PlexHistoryContainer | null => {
+    const windows = {
+      "1h": historyCache["1h"] ?? null,
+      "1d": historyCache["1d"] ?? null,
+      "1w": historyCache["1w"] ?? null,
+      "1m": historyCache["1m"] ?? null,
+    };
+    if (Object.values(windows).every((history) => history === null)) return null;
+    return {
+      windows,
+      upgradePressure30d: windows["1m"] ? deriveUpgradePressure30d(windows["1m"].summary) : null,
+    };
   };
 
   return {
@@ -416,8 +453,12 @@ export function createNetdataCollector(
       const metrics = Object.fromEntries(NETDATA_METRIC_KEYS.map(
         (key) => [key, chartResponses[options.metrics[key].chart]],
       ));
-      if (now.getTime() - historyLastAttemptAt >= HISTORY_REFRESH_MS) startHistoryRefresh(now.getTime());
-      return normalizeNetdata(metrics, options.hostLabel ?? "Media host", info, historyCache, {
+      for (const range of NETDATA_HISTORY_RANGE_KEYS) {
+        if (now.getTime() - historyLastAttemptAt[range] >= NETDATA_HISTORY_RANGES[range].refreshMs) {
+          startHistoryRefresh(range, now.getTime());
+        }
+      }
+      return normalizeNetdata(metrics, options.hostLabel ?? "Media host", info, cachedHistory(), {
         dimensions,
         ...(options.gpuName ? { gpuName: options.gpuName } : {}),
         ...(options.gpuTensorCores ? { gpuTensorCores: options.gpuTensorCores } : {}),

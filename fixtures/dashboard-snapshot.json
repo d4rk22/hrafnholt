@@ -103,18 +103,65 @@
         "ramTotalBytes": 25769803776,
         "hardwareSessions": 1,
         "history": {
-          "requestedWindowSeconds": 604800,
-          "sampledFrom": "2030-01-08T12:00:00.000Z",
-          "sampledTo": "2030-01-15T12:00:00.000Z",
-          "bucketSeconds": 21600,
-          "analysisSamples": 29,
-          "points": [
-            {"sampledAt": "2030-01-08T12:00:00.000Z", "encodePercent": 12, "decodePercent": 4, "cpuPercent": 18, "ramPercent": 23, "vramPercent": 20, "temperatureC": 47, "streamAverage": 1, "streamPeak": 2, "videoTranscodeAverage": 0.2, "videoTranscodePeak": 1},
-            {"sampledAt": "2030-01-10T12:00:00.000Z", "encodePercent": 24, "decodePercent": 9, "cpuPercent": 26, "ramPercent": 27, "vramPercent": 31, "temperatureC": 52, "streamAverage": 1.5, "streamPeak": 3, "videoTranscodeAverage": 0.6, "videoTranscodePeak": 1},
-            {"sampledAt": "2030-01-12T12:00:00.000Z", "encodePercent": 39, "decodePercent": 14, "cpuPercent": 33, "ramPercent": 32, "vramPercent": 38, "temperatureC": 58, "streamAverage": 2.2, "streamPeak": 4, "videoTranscodeAverage": 0.8, "videoTranscodePeak": 2},
-            {"sampledAt": "2030-01-15T12:00:00.000Z", "encodePercent": 28, "decodePercent": 11, "cpuPercent": 29, "ramPercent": 25, "vramPercent": 25, "temperatureC": 54, "streamAverage": 1.7, "streamPeak": 3, "videoTranscodeAverage": 0.4, "videoTranscodePeak": 1}
-          ],
-          "summary": {"encodeP95Percent": 39, "decodeP95Percent": 14, "cpuP95Percent": 33, "ramPeakPercent": 32, "vramPeakPercent": 38, "temperaturePeakC": 58, "pressure": "comfortable", "constraint": null}
+          "windows": {
+            "1h": {
+              "requestedWindowSeconds": 3600,
+              "sampledFrom": "2030-01-15T11:00:00.000Z",
+              "sampledTo": "2030-01-15T12:00:00.000Z",
+              "bucketSeconds": 15,
+              "analysisSamples": 240,
+              "points": [
+                {"sampledAt": "2030-01-15T11:00:00.000Z", "encodePercent": 18, "decodePercent": 6, "cpuPercent": 21, "ramPercent": 24, "vramPercent": 24, "temperatureC": 49, "streamAverage": 1, "streamPeak": 2, "videoTranscodeAverage": 0.2, "videoTranscodePeak": 1},
+                {"sampledAt": "2030-01-15T11:20:00.000Z", "encodePercent": 31, "decodePercent": 12, "cpuPercent": 30, "ramPercent": 26, "vramPercent": 33, "temperatureC": 55, "streamAverage": 1.8, "streamPeak": 3, "videoTranscodeAverage": 0.7, "videoTranscodePeak": 2},
+                {"sampledAt": "2030-01-15T11:40:00.000Z", "encodePercent": 52, "decodePercent": 22, "cpuPercent": 44, "ramPercent": 30, "vramPercent": 43, "temperatureC": 62, "streamAverage": 3.4, "streamPeak": 5, "videoTranscodeAverage": 1.5, "videoTranscodePeak": 3},
+                {"sampledAt": "2030-01-15T12:00:00.000Z", "encodePercent": 28, "decodePercent": 11, "cpuPercent": 29, "ramPercent": 25, "vramPercent": 25, "temperatureC": 54, "streamAverage": 1.7, "streamPeak": 3, "videoTranscodeAverage": 0.4, "videoTranscodePeak": 1}
+              ],
+              "summary": {"encodeP95Percent": 52, "decodeP95Percent": 22, "cpuP95Percent": 44, "ramPeakPercent": 30, "ramPeakAt": "2030-01-15T11:40:00.000Z", "vramPeakPercent": 43, "vramPeakAt": "2030-01-15T11:40:00.000Z", "temperaturePeakC": 62, "temperaturePeakAt": "2030-01-15T11:40:00.000Z"}
+            },
+            "1d": {
+              "requestedWindowSeconds": 86400,
+              "sampledFrom": "2030-01-14T12:00:00.000Z",
+              "sampledTo": "2030-01-15T12:00:00.000Z",
+              "bucketSeconds": 300,
+              "analysisSamples": 288,
+              "points": [
+                {"sampledAt": "2030-01-14T12:00:00.000Z", "encodePercent": 9, "decodePercent": 3, "cpuPercent": 16, "ramPercent": 22, "vramPercent": 18, "temperatureC": 46, "streamAverage": 0.8, "streamPeak": 2, "videoTranscodeAverage": 0.1, "videoTranscodePeak": 1},
+                {"sampledAt": "2030-01-14T20:00:00.000Z", "encodePercent": 62, "decodePercent": 28, "cpuPercent": 51, "ramPercent": 34, "vramPercent": 49, "temperatureC": 66, "streamAverage": 4.1, "streamPeak": 7, "videoTranscodeAverage": 2.2, "videoTranscodePeak": 4},
+                {"sampledAt": "2030-01-15T04:00:00.000Z", "encodePercent": 7, "decodePercent": 2, "cpuPercent": 14, "ramPercent": 21, "vramPercent": 16, "temperatureC": 44, "streamAverage": 0.5, "streamPeak": 1, "videoTranscodeAverage": 0, "videoTranscodePeak": 0},
+                {"sampledAt": "2030-01-15T12:00:00.000Z", "encodePercent": 28, "decodePercent": 11, "cpuPercent": 29, "ramPercent": 25, "vramPercent": 25, "temperatureC": 54, "streamAverage": 1.7, "streamPeak": 3, "videoTranscodeAverage": 0.4, "videoTranscodePeak": 1}
+              ],
+              "summary": {"encodeP95Percent": 62, "decodeP95Percent": 28, "cpuP95Percent": 51, "ramPeakPercent": 34, "ramPeakAt": "2030-01-14T20:00:00.000Z", "vramPeakPercent": 49, "vramPeakAt": "2030-01-14T20:00:00.000Z", "temperaturePeakC": 66, "temperaturePeakAt": "2030-01-14T20:00:00.000Z"}
+            },
+            "1w": {
+              "requestedWindowSeconds": 604800,
+              "sampledFrom": "2030-01-08T12:00:00.000Z",
+              "sampledTo": "2030-01-15T12:00:00.000Z",
+              "bucketSeconds": 1800,
+              "analysisSamples": 336,
+              "points": [
+                {"sampledAt": "2030-01-08T12:00:00.000Z", "encodePercent": 12, "decodePercent": 4, "cpuPercent": 18, "ramPercent": 23, "vramPercent": 20, "temperatureC": 47, "streamAverage": 1, "streamPeak": 2, "videoTranscodeAverage": 0.2, "videoTranscodePeak": 1},
+                {"sampledAt": "2030-01-10T12:00:00.000Z", "encodePercent": 24, "decodePercent": 9, "cpuPercent": 26, "ramPercent": 27, "vramPercent": 31, "temperatureC": 52, "streamAverage": 1.5, "streamPeak": 3, "videoTranscodeAverage": 0.6, "videoTranscodePeak": 1},
+                {"sampledAt": "2030-01-12T12:00:00.000Z", "encodePercent": 39, "decodePercent": 14, "cpuPercent": 33, "ramPercent": 32, "vramPercent": 38, "temperatureC": 58, "streamAverage": 2.2, "streamPeak": 4, "videoTranscodeAverage": 0.8, "videoTranscodePeak": 2},
+                {"sampledAt": "2030-01-15T12:00:00.000Z", "encodePercent": 28, "decodePercent": 11, "cpuPercent": 29, "ramPercent": 25, "vramPercent": 25, "temperatureC": 54, "streamAverage": 1.7, "streamPeak": 3, "videoTranscodeAverage": 0.4, "videoTranscodePeak": 1}
+              ],
+              "summary": {"encodeP95Percent": 39, "decodeP95Percent": 14, "cpuP95Percent": 33, "ramPeakPercent": 32, "ramPeakAt": "2030-01-12T12:00:00.000Z", "vramPeakPercent": 38, "vramPeakAt": "2030-01-12T12:00:00.000Z", "temperaturePeakC": 58, "temperaturePeakAt": "2030-01-12T12:00:00.000Z"}
+            },
+            "1m": {
+              "requestedWindowSeconds": 2592000,
+              "sampledFrom": "2029-12-16T12:00:00.000Z",
+              "sampledTo": "2030-01-15T12:00:00.000Z",
+              "bucketSeconds": 1800,
+              "analysisSamples": 1440,
+              "points": [
+                {"sampledAt": "2029-12-16T12:00:00.000Z", "encodePercent": 10, "decodePercent": 3, "cpuPercent": 17, "ramPercent": 22, "vramPercent": 18, "temperatureC": 46, "streamAverage": 0.9, "streamPeak": 2, "videoTranscodeAverage": 0.1, "videoTranscodePeak": 1},
+                {"sampledAt": "2029-12-26T12:00:00.000Z", "encodePercent": 24, "decodePercent": 9, "cpuPercent": 26, "ramPercent": 27, "vramPercent": 31, "temperatureC": 52, "streamAverage": 1.5, "streamPeak": 3, "videoTranscodeAverage": 0.6, "videoTranscodePeak": 1},
+                {"sampledAt": "2030-01-05T12:00:00.000Z", "encodePercent": 39, "decodePercent": 14, "cpuPercent": 33, "ramPercent": 32, "vramPercent": 38, "temperatureC": 58, "streamAverage": 2.2, "streamPeak": 4, "videoTranscodeAverage": 0.8, "videoTranscodePeak": 2},
+                {"sampledAt": "2030-01-15T12:00:00.000Z", "encodePercent": 28, "decodePercent": 11, "cpuPercent": 29, "ramPercent": 25, "vramPercent": 25, "temperatureC": 54, "streamAverage": 1.7, "streamPeak": 3, "videoTranscodeAverage": 0.4, "videoTranscodePeak": 1}
+              ],
+              "summary": {"encodeP95Percent": 39, "decodeP95Percent": 14, "cpuP95Percent": 33, "ramPeakPercent": 32, "ramPeakAt": "2030-01-05T12:00:00.000Z", "vramPeakPercent": 38, "vramPeakAt": "2030-01-05T12:00:00.000Z", "temperaturePeakC": 58, "temperaturePeakAt": "2030-01-05T12:00:00.000Z"}
+            }
+          },
+          "upgradePressure30d": {"pressure": "comfortable", "constraint": null}
         }
       }
     },

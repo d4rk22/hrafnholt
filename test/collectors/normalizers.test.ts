@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createArcaneCollector, normalizeArcaneEnvironment } from "../../src/collectors/arcane.js";
 import { normalizeEmporia } from "../../src/collectors/emporia.js";
-import { createNetdataCollector, normalizeNetdata, normalizeNetdataHistory } from "../../src/collectors/netdata.js";
+import { createNetdataCollector, deriveUpgradePressure30d, normalizeNetdata, normalizeNetdataHistory } from "../../src/collectors/netdata.js";
 import { createBackupCollector, pbsIncrementalBytes } from "../../src/collectors/pbs.js";
 import { collectPveBackupJobs, createProxmoxCollector, normalizeCpuModel, normalizeProxmoxNode } from "../../src/collectors/proxmox.js";
 import { isSuccessfulQbittorrentLogin, normalizeQbittorrentQueue, qBittorrentSessionCookie } from "../../src/collectors/qbittorrent.js";
@@ -459,8 +459,7 @@ test("Netdata history derives bounded capacity pressure from aligned source-owne
   assert.deepEqual(forwardOnly?.points.map((point) => point.videoTranscodePeak), [null, null, 4]);
   assert.equal(history.summary.encodeP95Percent, 90);
   assert.equal(history.summary.decodeP95Percent, 70);
-  assert.equal(history.summary.pressure, "pressured");
-  assert.equal(history.summary.constraint, "gpu_encoder");
+  assert.deepEqual(deriveUpgradePressure30d(history.summary), { pressure: "pressured", constraint: "gpu_encoder" });
   const comfortable = normalizeNetdataHistory({
     ...metrics,
     encodePercent: series("encoder", [10, 20, 30]),
@@ -476,13 +475,12 @@ test("Netdata history derives bounded capacity pressure from aligned source-owne
     },
   });
   assert.equal(comfortable?.summary.decodeP95Percent, 100);
-  assert.equal(comfortable?.summary.pressure, "comfortable");
-  assert.equal(comfortable?.summary.constraint, null);
+  assert.deepEqual(comfortable && deriveUpgradePressure30d(comfortable.summary), { pressure: "comfortable", constraint: null });
   const collecting = normalizeNetdataHistory({ ...metrics, workloadAverage: null, workloadPeak: null });
   assert.ok(collecting);
   assert.equal(collecting.points.at(-1)?.streamAverage, null);
   assert.equal(collecting.points.at(-1)?.streamPeak, null);
-  assert.equal(collecting.summary.pressure, "pressured");
+  assert.deepEqual(deriveUpgradePressure30d(collecting.summary), { pressure: "pressured", constraint: "gpu_encoder" });
 });
 
 test("Netdata history applies the configured workload-context boundary without hiding later gaps", () => {
@@ -525,12 +523,11 @@ test("Netdata history applies the configured workload-context boundary without h
   assert.deepEqual(history.points.map((point) => point.videoTranscodePeak), [2, null]);
   assert.equal(history.summary.encodeP95Percent, 20);
   assert.equal(history.summary.temperaturePeakC, 51);
-  assert.equal(history.summary.pressure, "comfortable");
-  assert.equal(history.summary.constraint, null);
+  assert.deepEqual(deriveUpgradePressure30d(history.summary), { pressure: "comfortable", constraint: null });
 });
 
-test("Netdata display downsampling averages workload context but preserves its bucket peaks", () => {
-  const values = Array.from({ length: 241 }, (_value, index) => index);
+test("Netdata display downsampling fills the display budget, averages workload context, and preserves bucket peaks", () => {
+  const values = Array.from({ length: 480 }, (_value, index) => index);
   const series = (dimension: string, samples: number[]) => ({
     labels: ["time", dimension],
     data: samples.map((value, index) => [WORKLOAD_CONTEXT_START_SECONDS + index * 1_800, value]).reverse(),
@@ -561,21 +558,64 @@ test("Netdata display downsampling averages workload context but preserves its b
     workloadPeak: workloadSeries.peak,
   });
   assert.ok(history);
-  assert.equal(history.analysisSamples, 241);
-  assert.equal(history.points.length, 121);
+  assert.equal(history.analysisSamples, 480);
+  assert.equal(history.points.length, 240);
   assert.equal(history.points[0]?.streamAverage, 1.5);
   assert.equal(history.points[0]?.streamPeak, 9);
   assert.equal(history.points[0]?.videoTranscodeAverage, 0.75);
   assert.equal(history.points[0]?.videoTranscodePeak, 8);
 });
 
-test("Netdata history refreshes every five minutes without weakening the five-second live collector", async () => {
+test("Netdata one-hour history uses 15-second analysis and fills the bounded display budget", () => {
+  const values = Array.from({ length: 241 }, (_value, index) => index);
+  const series = (dimension: string, samples: number[]) => ({
+    labels: ["time", dimension],
+    data: samples.map((value, index) => [WORKLOAD_CONTEXT_START_SECONDS + index * 15, value]).reverse(),
+  });
+  const history = Reflect.apply(normalizeNetdataHistory, undefined, [{
+    encodePercent: series("encoder", values.map((value) => value % 100)),
+    decodePercent: series("decoder", values.map((value) => value % 80)),
+    vramUsedBytes: series("used", values.map((value) => 100 + value)),
+    vramFreeBytes: series("free", values.map((value) => 900 - value)),
+    temperatureC: series("temp", values.map((value) => 40 + value / 10)),
+    cpuPercent: series("user", values.map((value) => value % 70)),
+    ramUsedMiB: series("used", values.map((value) => 1_000 + value)),
+    ramFreeMiB: series("free", values.map((value) => 4_000 - value)),
+    ramCachedMiB: series("cached", values.map(() => 4_000)),
+    ramBuffersMiB: series("buffers", values.map(() => 1_000)),
+    workloadAverage: {
+      labels: ["time", "streams", "video_transcodes"],
+      data: values.map((value, index) => [WORKLOAD_CONTEXT_START_SECONDS + index * 15, value / 10, value / 20]).reverse(),
+    },
+    workloadPeak: {
+      labels: ["time", "streams", "video_transcodes"],
+      data: values.map((value, index) => [WORKLOAD_CONTEXT_START_SECONDS + index * 15, value, value / 2]).reverse(),
+    },
+  }, undefined, Number.NEGATIVE_INFINITY, "1h"]) as ReturnType<typeof normalizeNetdataHistory>;
+
+  assert.ok(history);
+  assert.equal(history.requestedWindowSeconds, 3_600);
+  assert.equal(history.bucketSeconds, 15);
+  assert.equal(history.analysisSamples, 241);
+  assert.equal(history.points.length, 240);
+  assert.equal(history.points[0]?.streamAverage, 0);
+  assert.equal(history.points.at(-1)?.sampledAt, "2030-01-01T01:00:00.000Z");
+  assert.equal(Math.max(...history.points.map((point) => point.streamPeak ?? 0)), 240);
+  assert.equal(history.summary.ramPeakAt, "2030-01-01T01:00:00.000Z");
+  assert.equal(history.summary.vramPeakAt, "2030-01-01T01:00:00.000Z");
+  assert.equal(history.summary.temperaturePeakAt, "2030-01-01T01:00:00.000Z");
+});
+
+test("Netdata histories refresh at range-specific cadences without weakening the five-second live collector", async () => {
   const requested: string[] = [];
-  const responseFor = (chart: string, historical: boolean, group: string | null) => {
+  const responseFor = (chart: string, historical: boolean, group: string | null, points: string | null) => {
     const times = historical ? [WORKLOAD_CONTEXT_START_SECONDS + 1_800, WORKLOAD_CONTEXT_START_SECONDS] : [WORKLOAD_CONTEXT_START_SECONDS + 1_800];
     const rows = (values: number[]) => times.map((time, index) => [time, values[index] ?? values[0]]);
     if (chart.includes("gpu_utilization")) return { labels: ["time", "utilization"], data: rows([20, 10]) };
-    if (chart.includes("encoder_utilization")) return { labels: ["time", "encoder", "decoder"], data: times.map((time, index) => [time, [40, 20][index], [25, 10][index]]) };
+    if (chart.includes("encoder_utilization")) {
+      const encoder = points === "1440" ? [90, 85] : [40, 20];
+      return { labels: ["time", "encoder", "decoder"], data: times.map((time, index) => [time, encoder[index], [25, 10][index]]) };
+    }
     if (chart.includes("mem_usage")) return { labels: ["time", "used", "free"], data: times.map((time, index) => [time, [2_000, 1_000][index], [4_000, 5_000][index]]) };
     if (chart.includes("temperature")) return { labels: ["time", "temp"], data: rows([62, 55]) };
     if (chart === "nvidia_power.watts") return { labels: ["time", "power draw"], data: rows([42, 30]) };
@@ -591,18 +631,37 @@ test("Netdata history refreshes every five minutes without weakening the five-se
     requested.push(url);
     const parsed = new URL(url);
     if (parsed.pathname.endsWith("/info")) return { cores_total: "8" };
-    return responseFor(parsed.searchParams.get("chart") ?? "", parsed.searchParams.get("points") === "1440", parsed.searchParams.get("group"));
+    const points = parsed.searchParams.get("points");
+    return responseFor(parsed.searchParams.get("chart") ?? "", points !== "1", parsed.searchParams.get("group"), points);
   }, NETDATA_COLLECTOR_OPTIONS);
   const signal = new AbortController().signal;
   await collector.collect({ signal, now: new Date("2030-01-01T01:00:00.000Z") });
   await new Promise((resolve) => setImmediate(resolve));
-  const second = await collector.collect({ signal, now: new Date("2030-01-01T01:01:00.000Z") });
-  assert.equal(second.history?.analysisSamples, 2);
-  assert.equal(second.history?.points.at(-1)?.streamAverage, 3.5);
-  assert.equal(second.history?.points.at(-1)?.streamPeak, 6);
-  assert.equal(requested.filter((url) => new URL(url).searchParams.get("points") === "1440").length, 7);
-  assert.equal(requested.filter((url) => new URL(url).searchParams.get("chart") === "test_workload.concurrent" && new URL(url).searchParams.get("group") === "max").length, 1);
+  const second = await collector.collect({ signal, now: new Date("2030-01-01T01:00:01.000Z") });
+  const histories = second.history as unknown as {
+    windows: Record<string, { analysisSamples: number; points: Array<{ streamAverage: number | null; streamPeak: number | null }>; summary: { encodeP95Percent: number } } | null>;
+    upgradePressure30d: { pressure: string; constraint: string | null } | null;
+  } | null;
+  assert.equal(histories?.windows["1h"]?.analysisSamples, 2);
+  assert.equal(histories?.windows["1h"]?.points.at(-1)?.streamAverage, 3.5);
+  assert.equal(histories?.windows["1h"]?.points.at(-1)?.streamPeak, 6);
+  assert.equal(histories?.windows["1h"]?.summary.encodeP95Percent, 40);
+  assert.equal(histories?.windows["1m"]?.summary.encodeP95Percent, 90);
+  assert.deepEqual(histories?.upgradePressure30d, { pressure: "pressured", constraint: "gpu_encoder" });
+  for (const [points, after] of [["240", "-3600"], ["288", "-86400"], ["336", "-604800"], ["1440", "-2592000"]]) {
+    const rangeRequests = requested.filter((url) => new URL(url).searchParams.get("points") === points);
+    assert.equal(rangeRequests.length, 7);
+    assert.equal(rangeRequests.every((url) => new URL(url).searchParams.get("after") === after), true);
+  }
+  assert.equal(requested.filter((url) => new URL(url).searchParams.get("chart") === "test_workload.concurrent" && new URL(url).searchParams.get("group") === "max").length, 4);
   assert.equal(requested.filter((url) => new URL(url).searchParams.get("points") === "1").length, 14);
+
+  await collector.collect({ signal, now: new Date("2030-01-01T01:00:46.000Z") });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(requested.filter((url) => new URL(url).searchParams.get("points") === "240").length, 14);
+  assert.equal(requested.filter((url) => new URL(url).searchParams.get("points") === "288").length, 7);
+  assert.equal(requested.filter((url) => new URL(url).searchParams.get("points") === "336").length, 7);
+  assert.equal(requested.filter((url) => new URL(url).searchParams.get("points") === "1440").length, 7);
 });
 
 test("Netdata live telemetry returns while a background history request is still pending", async () => {
