@@ -647,7 +647,7 @@ h2 { font-size: 24px; line-height: 1; }
 .rack-load-row { min-height: 36px; border-top: 1px solid var(--line); }
 .rack-load-device { min-width: 0; }
 .rack-load-device b { display: block; overflow: hidden; font-size: 9px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.rack-load-bar { height: 2px; margin-top: 5px; background: var(--rail); }
+.rack-load-bar { height: 2px; margin-top: 5px; }
 .rack-load-bar i { display: block; width: var(--fill); height: 100%; background: var(--blue); }
 .rack-load-row > span { color: var(--muted); font-family: var(--mono); font-size: 9px; }
 .rack-load-row > .rack-load-est { color: var(--amber); }
