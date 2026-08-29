@@ -9,7 +9,6 @@ import os
 import re
 import threading
 import time
-from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -22,12 +21,9 @@ _cache: dict[str, Any] = {"data": None, "timestamp": 0.0}
 _cache_lock = threading.Lock()
 _SECRET_REFERENCE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
-MOVERS_WINDOW_SECONDS = 3_600
-MOVERS_RETENTION_SECONDS = 3_900
-MOVERS_LIMIT = 5
-MOVERS_NAME_LIMIT = 40
-MOVERS_CIRCUIT_LIMIT = 48
-_movers_history: deque[tuple[float, dict[str, dict[str, Any]]]] = deque()
+TOP_CONSUMERS_LIMIT = 7
+TOP_CONSUMERS_NAME_LIMIT = 40
+TOP_CONSUMERS_CIRCUIT_LIMIT = 48
 
 
 class ConfigurationError(RuntimeError):
@@ -299,20 +295,22 @@ def load_energy_config(
     )
 
 
-def collect_circuit_sample(
+def collect_circuit_kwh_sample(
     circuits: dict[str, dict[str, Any]],
     channel_number: Any,
     channel: Any,
     config: EnergyConfig,
 ) -> None:
-    """Record one auxiliary circuit reading; malformed entries are skipped.
+    """Record one auxiliary circuit's today-so-far kWh; malformed entries are skipped.
 
-    Circuit data feeds the movers list only, so it must never fail the
-    core telemetry contract: anything aggregate (the mains selector, any
-    multi-channel selector, the provider's pseudo-channels) or malformed
-    is dropped instead of raising.
+    Circuit data feeds the top-consumers list only, so it must never fail
+    the core telemetry contract: anything aggregate (the mains selector,
+    any multi-channel selector, the provider's pseudo-channels) or
+    malformed is dropped instead of raising. The DAY-scale usage this is
+    sampled from is already denominated in kWh, so no unit conversion is
+    applied here.
     """
-    if len(circuits) >= MOVERS_CIRCUIT_LIMIT:
+    if len(circuits) >= TOP_CONSUMERS_CIRCUIT_LIMIT:
         return
     key = str(channel_number)
     if key == str(config.mains_channel) or "," in key or key in ("TotalUsage", "Balance"):
@@ -320,13 +318,13 @@ def collect_circuit_sample(
     raw_value = getattr(channel, "usage", None)
     if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
         return
-    watts = float(raw_value) * 3_600_000
-    if not math.isfinite(watts):
+    kwh = float(raw_value)
+    if not math.isfinite(kwh):
         return
     name = getattr(channel, "name", None)
     if not isinstance(name, str) or not name.strip():
         name = f"Circuit {key}"
-    circuits[key] = {"name": name.strip()[:MOVERS_NAME_LIMIT], "w": watts}
+    circuits[key] = {"name": name.strip()[:TOP_CONSUMERS_NAME_LIMIT], "kwh": kwh}
 
 
 def fetch_usage(
@@ -412,8 +410,8 @@ def fetch_usage(
                 if not isinstance(channels, Mapping):
                     raise EnergyCollectionFailure(selector_stage)
                 for channel_number, channel in channels.items():
-                    if scale_name == "now":
-                        collect_circuit_sample(circuits, channel_number, channel, config)
+                    if scale_name == "today":
+                        collect_circuit_kwh_sample(circuits, channel_number, channel, config)
                     role = channel_roles.get(channel_number)
                     if role is None:
                         continue
@@ -493,41 +491,20 @@ def calculate_energy(
     }
 
 
-def compute_movers(
-    history: deque[tuple[float, dict[str, dict[str, Any]]]],
-    circuits: dict[str, dict[str, Any]],
-    now: float,
-) -> dict[str, Any]:
-    """Append the newest circuit sample and rank the largest changes.
+def compute_top_consumers(circuits: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Rank today's circuits by kWh consumed, highest first.
 
-    The baseline is the oldest sample still inside the retention window,
-    so the reported window grows from zero after a restart up to roughly
-    ``MOVERS_WINDOW_SECONDS``. Circuits without a baseline reading and
-    changes that round to zero watts are omitted.
+    Rows whose kWh rounds to zero are omitted, ties break alphabetically
+    by name, and the result is truncated to ``TOP_CONSUMERS_LIMIT``.
     """
-    history.append((now, circuits))
-    while history and now - history[0][0] > MOVERS_RETENTION_SECONDS:
-        history.popleft()
-    baseline_at, baseline = history[0]
-    window_seconds = max(0.0, now - baseline_at)
     rows: list[dict[str, Any]] = []
-    for key, sample in circuits.items():
-        before = baseline.get(key)
-        if before is None:
+    for sample in circuits.values():
+        kwh = round(float(sample["kwh"]), 1)
+        if kwh == 0.0:
             continue
-        delta = round(float(sample["w"]) - float(before["w"]))
-        if delta == 0:
-            continue
-        rows.append({
-            "name": sample["name"],
-            "w": round(float(sample["w"])),
-            "delta_w": delta,
-        })
-    rows.sort(key=lambda row: (-abs(row["delta_w"]), row["name"]))
-    return {
-        "window_minutes": round(window_seconds / 60),
-        "circuits": rows[:MOVERS_LIMIT],
-    }
+        rows.append({"name": sample["name"], "kwh": kwh})
+    rows.sort(key=lambda row: (-row["kwh"], row["name"]))
+    return {"circuits": rows[:TOP_CONSUMERS_LIMIT]}
 
 
 def cached_energy(
@@ -541,7 +518,7 @@ def cached_energy(
             try:
                 circuits = raw.pop("circuits", {}) if isinstance(raw, dict) else {}
                 payload = calculate_energy(raw, config)
-                payload["movers"] = compute_movers(_movers_history, circuits, now)
+                payload["top_consumers"] = compute_top_consumers(circuits)
                 _cache["data"] = payload
             except EnergyCollectionFailure:
                 raise

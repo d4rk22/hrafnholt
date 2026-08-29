@@ -916,17 +916,13 @@ function renderEnergy(panel) {
   share?.style.setProperty("--fill", `${sharePercent}%`);
   share?.setAttribute("aria-valuenow", number(sharePercent));
   share?.setAttribute("aria-label", data ? `Homelab uses ${number(sharePercent)} percent of household energy month to date` : "Homelab household energy share unavailable");
-  const moversSection = document.querySelector("#energy-movers");
-  const movers = data?.movers ?? [];
-  moversSection?.toggleAttribute("hidden", movers.length === 0);
-  if (movers.length === 0) return;
-  setText("#energy-movers-window", number(data.moversWindowMinutes));
-  const peakDelta = Math.max(...movers.map((mover) => Math.abs(mover.deltaWatts)));
-  document.querySelector("#energy-movers-list").innerHTML = movers.map((mover) => {
-    const rising = mover.deltaWatts > 0;
-    const magnitude = peakDelta ? Math.max(6, Math.round(Math.abs(mover.deltaWatts) / peakDelta * 100)) : 0;
-    return `<li class="energy-mover ${rising ? "energy-mover--up" : "energy-mover--down"}"><span class="energy-mover__arrow" aria-hidden="true">${rising ? "▲" : "▼"}</span><div class="energy-mover__name"><strong>${escapeHtml(mover.name)}</strong><span class="energy-mover__bar"><i style="width:${magnitude}%"></i></span></div><small>${number(mover.watts)}W now</small><b>${rising ? "+" : "−"}${number(Math.abs(mover.deltaWatts))}W</b></li>`;
-  }).join("");
+  const consumersSection = document.querySelector("#energy-consumers");
+  const topConsumers = data?.topConsumers ?? [];
+  consumersSection?.toggleAttribute("hidden", topConsumers.length === 0);
+  if (topConsumers.length === 0) return;
+  document.querySelector("#energy-consumers-list").innerHTML = topConsumers.map((consumer) => (
+    `<li class="energy-consumer"><span class="energy-consumer__name">${escapeHtml(consumer.name)}</span><b>${number(consumer.kwh, 1)} kWh</b></li>`
+  )).join("");
 }
 
 function renderRackPower(panel, energyPanel) {

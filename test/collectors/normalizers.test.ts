@@ -356,30 +356,38 @@ test("energy normalization preserves every synthetic ledger field", () => {
   assert.equal(energy.projectedHouseKwh, 900);
   assert.equal(energy.projectedHouseCost, 75);
   assert.equal(energy.daysInMonth, 31);
-  assert.deepEqual(energy.movers, []);
-  assert.equal(energy.moversWindowMinutes, 0);
+  assert.deepEqual(energy.topConsumers, []);
 });
 
-test("Emporia circuit movers normalize bounded and drop malformed rows", () => {
+test("Emporia top energy consumers normalize and drop malformed rows", () => {
   const energy = normalizeEmporia({
-    movers: {
-      window_minutes: 58.9,
+    top_consumers: {
       circuits: [
-        { name: "Dryer", w: 4_600.4, delta_w: 4_500 },
-        { name: "Oven", w: -20, delta_w: -750.6 },
-        { name: "", w: 10, delta_w: 300 },
-        { name: "Steady", w: 60, delta_w: 0 },
-        { name: "X".repeat(80), w: 1, delta_w: 2 },
-        { name: "Overflow", w: 5, delta_w: 5 },
+        { name: "Dryer", kwh: 4.6 },
+        { name: "Oven", kwh: -20 },
+        { name: "", kwh: 10 },
+        { name: "Steady", kwh: 6 },
+        { name: "X".repeat(80), kwh: 1 },
+        { name: "Fridge", kwh: 3 },
+        { name: "Washer", kwh: 2 },
+        { name: "Overflow", kwh: 1 },
       ],
     },
   });
-  assert.equal(energy.moversWindowMinutes, 58);
-  assert.equal(energy.movers.length, 3);
-  assert.deepEqual(energy.movers[0], { name: "Dryer", watts: 4_600.4, deltaWatts: 4_500 });
-  assert.deepEqual(energy.movers[1], { name: "Oven", watts: 0, deltaWatts: -750.6 });
-  assert.equal(energy.movers[2]?.name.length, 40);
-  assert.deepEqual(normalizeEmporia({ movers: { window_minutes: "soon", circuits: "none" } }).movers, []);
+  assert.equal(energy.topConsumers.length, 5);
+  assert.deepEqual(energy.topConsumers[0], { name: "Dryer", kwh: 4.6 });
+  assert.equal(energy.topConsumers[2]?.name.length, 40);
+  assert.deepEqual(normalizeEmporia({ top_consumers: { circuits: "none" } }).topConsumers, []);
+});
+
+test("Emporia top energy consumers are clamped to 7 rows", () => {
+  const energy = normalizeEmporia({
+    top_consumers: {
+      circuits: Array.from({ length: 9 }, (_, index) => ({ name: `Circuit ${index}`, kwh: 9 - index })),
+    },
+  });
+  assert.equal(energy.topConsumers.length, 7);
+  assert.deepEqual(energy.topConsumers[0], { name: "Circuit 0", kwh: 9 });
 });
 
 test("standard UPS OIDs normalize battery status, charge, runtime, and load", () => {
