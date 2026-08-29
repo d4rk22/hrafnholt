@@ -141,7 +141,7 @@ export const powerDataSchema = z.object({
         kwh: z.number().finite().nonnegative(),
       }),
     )
-    .max(7)
+    .max(6)
     .default([]),
 });
 

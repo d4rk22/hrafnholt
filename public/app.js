@@ -920,9 +920,12 @@ function renderEnergy(panel) {
   const topConsumers = data?.topConsumers ?? [];
   consumersSection?.toggleAttribute("hidden", topConsumers.length === 0);
   if (topConsumers.length === 0) return;
-  document.querySelector("#energy-consumers-list").innerHTML = topConsumers.map((consumer) => (
-    `<li class="energy-consumer"><span class="energy-consumer__name">${escapeHtml(consumer.name)}</span><b>${number(consumer.kwh, 1)} kWh</b></li>`
-  )).join("");
+  document.querySelector("#energy-consumers-list").innerHTML = topConsumers.map((consumer) => {
+    const consumerShare = data.houseTodayKwh > 0 ? consumer.kwh / data.houseTodayKwh * 100 : null;
+    const est = consumerShare === null ? null : data.projectedHouseCost * consumerShare / 100;
+    return `<li class="energy-consumer"><span class="energy-consumer__name">${escapeHtml(consumer.name)}</span><span class="energy-consumer__share">${consumerShare === null ? "—" : `${escapeHtml(number(consumerShare, 1))}%`}</span><span class="energy-consumer__est">${est === null ? "—" : escapeHtml(money(est))}</span><b>${number(consumer.kwh, 1)} kWh</b></li>`;
+  }).join("");
+  setText("#energy-consumers-rate", data.rateLabel);
 }
 
 function renderRackPower(panel, energyPanel) {

@@ -10,6 +10,7 @@ test("approved sanitized fixture satisfies the dashboard contract", async () => 
   assert.equal(fixture.demoState, "healthy");
   assert.equal(fixture.panels.movies.data.movies.length, 3);
   assert.equal(fixture.panels.rackPower.data.outlets.length, 6);
+  assert.equal(fixture.panels.power.data.topConsumers.length, 6);
   assert.equal(fixture.panels.backups.data.pbs.datastores.length, 2);
   assert.equal(fixture.panels.backups.data.pbs.datastores[0].availableBytes, 2_000_000_000_000);
   assert.equal(fixture.panels.backups.data.pbs.verificationTotal, 80);
