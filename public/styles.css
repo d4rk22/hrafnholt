@@ -660,7 +660,7 @@ h2 { font-size: 24px; line-height: 1; }
 .rack-load-row > strong { color: #cbd6d9; font-family: var(--mono); font-size: 9px; font-weight: 500; }
 .rack-power-footer, .energy-consumers-footer { position: relative; z-index: 1; gap: 12px; font-size: 9px; }
 .rack-power-footer b, .energy-consumers-footer b { color: var(--frost); font-weight: 400; text-align: right; }
-.energy-consumers-footer { margin: 0 -19px; }
+.energy-consumers-footer { min-height: 24px; margin: 0 -19px; }
 
 .pbs-vault { position: relative; z-index: 1; border-bottom: 1px solid var(--line-strong); background: linear-gradient(110deg, rgba(38, 79, 85, .11), rgba(8, 13, 16, .16) 58%); }
 .pbs-vault::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(var(--telemetry-rgb), .025) 1px, transparent 1px); background-size: 31px 100%; mask-image: linear-gradient(90deg, black, transparent 66%); }
