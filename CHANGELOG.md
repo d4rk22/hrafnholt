@@ -5,6 +5,18 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.11] - 2026-08-29
+
+### Changed
+
+- The energy pane's Top energy consumers list gains share and estimated
+  30-day cost columns: each circuit shows its share of the house's
+  consumption today and that share applied to the projected 30-day house
+  cost, with a footer disclosing the projection basis and rate. The list
+  shows six circuits instead of seven so the panel keeps its height.
+- The rack panel's per-outlet load bars drop their empty track,
+  showing only the filled portion.
+
 ## [0.1.10] - 2026-08-29
 
 ### Added
