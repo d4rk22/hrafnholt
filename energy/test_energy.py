@@ -241,7 +241,6 @@ class EnergyCalculationTest(unittest.TestCase):
 class EnergyFailureTelemetryTest(unittest.TestCase):
     def setUp(self) -> None:
         energy_app._cache.update({"data": None, "timestamp": 0.0})
-        energy_app._movers_history.clear()
 
     def assert_fixed_failure(
         self,
@@ -434,119 +433,102 @@ class EnergyFailureTelemetryTest(unittest.TestCase):
                 "days_in_month",
                 "pct_of_house",
                 "observed_at",
-                "movers",
+                "top_consumers",
             },
         )
-        self.assertEqual(set(payload["movers"]), {"window_minutes", "circuits"})
+        self.assertEqual(set(payload["top_consumers"]), {"circuits"})
 
         second_status, second_payload = energy_response(runtime)
         self.assertEqual((second_status, second_payload), (status, payload))
         self.assertEqual(provider.usage_calls, ["second", "day", "month"])
 
 
-class CircuitMoversTest(unittest.TestCase):
+class TopEnergyConsumersTest(unittest.TestCase):
     def setUp(self) -> None:
         energy_app._cache.update({"data": None, "timestamp": 0.0})
-        energy_app._movers_history.clear()
 
     def test_circuit_sample_collection_excludes_aggregates_and_malformed(self) -> None:
         circuits: dict[str, dict[str, object]] = {}
         samples = {
-            "server": SimpleNamespace(usage=0.0001, name="Server Room"),
-            "mains": SimpleNamespace(usage=0.0009, name="Mains"),
-            "1,2,3": SimpleNamespace(usage=0.0009, name="Panel"),
-            "TotalUsage": SimpleNamespace(usage=0.0009, name="Total"),
-            "Balance": SimpleNamespace(usage=0.0009, name="Balance"),
+            "server": SimpleNamespace(usage=0.4, name="Server Room"),
+            "mains": SimpleNamespace(usage=0.9, name="Mains"),
+            "1,2,3": SimpleNamespace(usage=0.9, name="Panel"),
+            "TotalUsage": SimpleNamespace(usage=0.9, name="Total"),
+            "Balance": SimpleNamespace(usage=0.9, name="Balance"),
             "7": SimpleNamespace(usage=True, name="Bool"),
             "8": SimpleNamespace(usage=None, name="Empty"),
             "9": SimpleNamespace(usage=float("inf"), name="Infinite"),
             "10": SimpleNamespace(usage="0.5", name="Text"),
-            "11": SimpleNamespace(usage=0.0002, name="   "),
-            "12": SimpleNamespace(usage=0.0003, name="X" * 80),
+            "11": SimpleNamespace(usage=0.2, name="   "),
+            "12": SimpleNamespace(usage=0.3, name="X" * 80),
         }
         for number, channel in samples.items():
-            energy_app.collect_circuit_sample(
+            energy_app.collect_circuit_kwh_sample(
                 circuits, number, channel, SYNTHETIC_CONFIG
             )
         self.assertEqual(set(circuits), {"server", "11", "12"})
-        self.assertEqual(circuits["server"], {"name": "Server Room", "w": 360.0})
+        self.assertEqual(circuits["server"], {"name": "Server Room", "kwh": 0.4})
         self.assertEqual(circuits["11"]["name"], "Circuit 11")
-        self.assertEqual(len(circuits["12"]["name"]), energy_app.MOVERS_NAME_LIMIT)
+        self.assertEqual(len(circuits["12"]["name"]), energy_app.TOP_CONSUMERS_NAME_LIMIT)
 
     def test_circuit_sample_collection_is_bounded(self) -> None:
         circuits: dict[str, dict[str, object]] = {}
-        for index in range(energy_app.MOVERS_CIRCUIT_LIMIT + 10):
-            energy_app.collect_circuit_sample(
+        for index in range(energy_app.TOP_CONSUMERS_CIRCUIT_LIMIT + 10):
+            energy_app.collect_circuit_kwh_sample(
                 circuits,
                 str(index),
-                SimpleNamespace(usage=0.0001, name=f"Circuit {index}"),
+                SimpleNamespace(usage=0.1, name=f"Circuit {index}"),
                 SYNTHETIC_CONFIG,
             )
-        self.assertEqual(len(circuits), energy_app.MOVERS_CIRCUIT_LIMIT)
+        self.assertEqual(len(circuits), energy_app.TOP_CONSUMERS_CIRCUIT_LIMIT)
 
-    def test_first_sample_reports_an_empty_window(self) -> None:
-        history: "energy_app.deque" = energy_app.deque()
-        movers = energy_app.compute_movers(
-            history, {"1": {"name": "Dryer", "w": 500.0}}, 1_000.0
-        )
-        self.assertEqual(movers, {"window_minutes": 0, "circuits": []})
-
-    def test_movers_rank_by_absolute_change_and_drop_noise(self) -> None:
-        history: "energy_app.deque" = energy_app.deque()
-        baseline = {
-            "1": {"name": "Dryer", "w": 100.0},
-            "2": {"name": "Oven", "w": 900.0},
-            "3": {"name": "Steady", "w": 60.0},
-            "4": {"name": "Removed", "w": 40.0},
+    def test_top_consumers_rank_by_kwh_desc_with_name_tiebreak(self) -> None:
+        circuits = {
+            "1": {"name": "Dryer", "kwh": 4.5},
+            "2": {"name": "Oven", "kwh": 4.5},
+            "3": {"name": "Fridge", "kwh": 1.2},
         }
-        energy_app.compute_movers(history, baseline, 0.0)
-        current = {
-            "1": {"name": "Dryer", "w": 4_600.0},
-            "2": {"name": "Oven", "w": 150.0},
-            "3": {"name": "Steady", "w": 60.4},
-            "5": {"name": "New Circuit", "w": 800.0},
-        }
-        movers = energy_app.compute_movers(history, current, 1_800.0)
-        self.assertEqual(movers["window_minutes"], 30)
+        top_consumers = energy_app.compute_top_consumers(circuits)
         self.assertEqual(
-            movers["circuits"],
-            [
-                {"name": "Dryer", "w": 4_600, "delta_w": 4_500},
-                {"name": "Oven", "w": 150, "delta_w": -750},
-            ],
+            top_consumers,
+            {
+                "circuits": [
+                    {"name": "Dryer", "kwh": 4.5},
+                    {"name": "Oven", "kwh": 4.5},
+                    {"name": "Fridge", "kwh": 1.2},
+                ]
+            },
         )
 
-    def test_movers_list_is_capped_and_window_is_pruned(self) -> None:
-        history: "energy_app.deque" = energy_app.deque()
-        old = {str(n): {"name": f"C{n}", "w": 0.0} for n in range(8)}
-        mid = {str(n): {"name": f"C{n}", "w": 10.0} for n in range(8)}
-        new = {str(n): {"name": f"C{n}", "w": float(100 * (n + 1))} for n in range(8)}
-        energy_app.compute_movers(history, old, 0.0)
-        energy_app.compute_movers(
-            history, mid, float(energy_app.MOVERS_RETENTION_SECONDS)
-        )
-        movers = energy_app.compute_movers(
-            history, new, float(energy_app.MOVERS_RETENTION_SECONDS + 1_800)
-        )
-        self.assertEqual(len(movers["circuits"]), energy_app.MOVERS_LIMIT)
-        self.assertEqual(movers["window_minutes"], 30)
-        self.assertEqual(movers["circuits"][0], {"name": "C7", "w": 800, "delta_w": 790})
+    def test_top_consumers_omit_rows_that_round_to_zero(self) -> None:
+        circuits = {
+            "1": {"name": "Standby", "kwh": 0.04},
+            "2": {"name": "Dryer", "kwh": 4.5},
+        }
+        top_consumers = energy_app.compute_top_consumers(circuits)
+        self.assertEqual(top_consumers["circuits"], [{"name": "Dryer", "kwh": 4.5}])
 
-    def test_fetch_usage_returns_circuits_beside_the_role_contract(self) -> None:
+    def test_top_consumers_are_capped_at_seven(self) -> None:
+        circuits = {
+            str(n): {"name": f"C{n}", "kwh": float(n + 1)} for n in range(10)
+        }
+        top_consumers = energy_app.compute_top_consumers(circuits)
+        self.assertEqual(len(top_consumers["circuits"]), energy_app.TOP_CONSUMERS_LIMIT)
+        self.assertEqual(top_consumers["circuits"][0], {"name": "C9", "kwh": 10.0})
+
+    def test_fetch_usage_collects_day_scale_kwh_without_watt_conversion(self) -> None:
         responses = {
             scale: usage_response() for scale in ("second", "day", "month")
         }
-        for channel in responses["second"].values():
-            channel.channels["9"] = SimpleNamespace(usage=0.0002, name="Rack PDU")
+        for channel in responses["day"].values():
+            channel.channels["9"] = SimpleNamespace(usage=0.2, name="Rack PDU")
         raw = fetch_usage(
             SYNTHETIC_CONFIG,
             provider_factory=lambda: SyntheticProvider(responses),
             scale_values=SCALE_VALUES,
         )
-        self.assertEqual(
-            set(raw["circuits"]), {"server", "climate", "9"}
-        )
-        self.assertEqual(raw["circuits"]["9"], {"name": "Rack PDU", "w": 720.0})
+        self.assertEqual(set(raw["circuits"]), {"server", "climate", "9"})
+        self.assertEqual(raw["circuits"]["9"], {"name": "Rack PDU", "kwh": 0.2})
         self.assertEqual(raw["server_watts"], 3_600_000.0)
 
 
