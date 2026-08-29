@@ -5,6 +5,22 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.10] - 2026-08-29
+
+### Added
+
+- The capacity overhead pane gains a time-window selector with
+  range-aware capacity histories (per-window coverage, singular units).
+
+### Changed
+
+- The energy pane's "Top circuit movers" list is replaced by "Top energy
+  consumers": the top seven circuits by energy consumed since local
+  midnight, read from the provider's day-scale usage. The energy payload
+  key `movers` (and its `window_minutes`) is replaced by
+  `top_consumers`; the in-memory sampling history is gone, so the list
+  is accurate immediately after a restart.
+
 ## [0.1.9] - 2026-08-24
 
 ### Added

@@ -51,7 +51,7 @@ floating `latest`. Deployments use the accepted digest, not a tag
 (see [Release readiness](RELEASING.md)). Resolve the digest once:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/d4rk22/hrafnholt-dashboard:v0.1.8
+docker buildx imagetools inspect ghcr.io/d4rk22/hrafnholt-dashboard:v0.1.10
 ```
 
 then run the digest-pinned image with the same hardening as the local
