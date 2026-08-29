@@ -173,7 +173,7 @@
       "ageSeconds": 0,
       "staleAfterSeconds": 180,
       "message": null,
-      "data": {"serverWatts": 640, "acWatts": 210, "houseWatts": 2400, "totalWatts": 850, "serverTodayKwh": 4.2, "acTodayKwh": 1.4, "todayKwh": 5.6, "houseTodayKwh": 15.8, "serverMonthKwh": 72, "acMonthKwh": 24, "monthKwh": 96, "houseMonthKwh": 280, "projectedKwh": 192, "projectedHouseKwh": 560, "monthCost": 14.4, "projectedCost": 28.8, "projectedHouseCost": 84, "rate": 0.15, "rateLabel": "synthetic flat rate", "daysInMonth": 31, "serverPercentOfHouse": 35, "topConsumers": [{"name": "Garage EV Charger", "kwh": 9.8}, {"name": "Dryer", "kwh": 6.4}, {"name": "Kitchen Oven", "kwh": 3.1}, {"name": "Living Room AC", "kwh": 2.6}, {"name": "Server Room", "kwh": 2.4}, {"name": "Refrigerator", "kwh": 1.8}, {"name": "Washer", "kwh": 1.2}]}
+      "data": {"serverWatts": 640, "acWatts": 210, "houseWatts": 2400, "totalWatts": 850, "serverTodayKwh": 4.2, "acTodayKwh": 1.4, "todayKwh": 5.6, "houseTodayKwh": 15.8, "serverMonthKwh": 72, "acMonthKwh": 24, "monthKwh": 96, "houseMonthKwh": 280, "projectedKwh": 192, "projectedHouseKwh": 560, "monthCost": 14.4, "projectedCost": 28.8, "projectedHouseCost": 84, "rate": 0.15, "rateLabel": "synthetic flat rate", "daysInMonth": 31, "serverPercentOfHouse": 35, "topConsumers": [{"name": "Garage EV Charger", "kwh": 9.8}, {"name": "Dryer", "kwh": 6.4}, {"name": "Kitchen Oven", "kwh": 3.1}, {"name": "Living Room AC", "kwh": 2.6}, {"name": "Server Room", "kwh": 2.4}, {"name": "Refrigerator", "kwh": 1.8}]}
     },
     "rackPower": {
       "status": "ok",

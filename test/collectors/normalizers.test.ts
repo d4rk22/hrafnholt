@@ -374,19 +374,19 @@ test("Emporia top energy consumers normalize and drop malformed rows", () => {
       ],
     },
   });
-  assert.equal(energy.topConsumers.length, 5);
+  assert.equal(energy.topConsumers.length, 4);
   assert.deepEqual(energy.topConsumers[0], { name: "Dryer", kwh: 4.6 });
   assert.equal(energy.topConsumers[2]?.name.length, 40);
   assert.deepEqual(normalizeEmporia({ top_consumers: { circuits: "none" } }).topConsumers, []);
 });
 
-test("Emporia top energy consumers are clamped to 7 rows", () => {
+test("Emporia top energy consumers are clamped to 6 rows", () => {
   const energy = normalizeEmporia({
     top_consumers: {
       circuits: Array.from({ length: 9 }, (_, index) => ({ name: `Circuit ${index}`, kwh: 9 - index })),
     },
   });
-  assert.equal(energy.topConsumers.length, 7);
+  assert.equal(energy.topConsumers.length, 6);
   assert.deepEqual(energy.topConsumers[0], { name: "Circuit 0", kwh: 9 });
 });
 

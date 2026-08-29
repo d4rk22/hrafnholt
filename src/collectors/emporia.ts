@@ -9,7 +9,7 @@ function record(value: unknown): UnknownRecord {
 function normalizeTopConsumers(input: unknown): unknown[] {
   const topConsumers = record(input);
   return (Array.isArray(topConsumers.circuits) ? topConsumers.circuits : [])
-    .slice(0, 7)
+    .slice(0, 6)
     .map((entry) => {
       const circuit = record(entry);
       return {

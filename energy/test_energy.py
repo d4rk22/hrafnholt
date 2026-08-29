@@ -508,12 +508,13 @@ class TopEnergyConsumersTest(unittest.TestCase):
         top_consumers = energy_app.compute_top_consumers(circuits)
         self.assertEqual(top_consumers["circuits"], [{"name": "Dryer", "kwh": 4.5}])
 
-    def test_top_consumers_are_capped_at_seven(self) -> None:
+    def test_top_consumers_are_capped_at_six(self) -> None:
         circuits = {
             str(n): {"name": f"C{n}", "kwh": float(n + 1)} for n in range(10)
         }
         top_consumers = energy_app.compute_top_consumers(circuits)
-        self.assertEqual(len(top_consumers["circuits"]), energy_app.TOP_CONSUMERS_LIMIT)
+        self.assertEqual(energy_app.TOP_CONSUMERS_LIMIT, 6)
+        self.assertEqual(len(top_consumers["circuits"]), 6)
         self.assertEqual(top_consumers["circuits"][0], {"name": "C9", "kwh": 10.0})
 
     def test_fetch_usage_collects_day_scale_kwh_without_watt_conversion(self) -> None:

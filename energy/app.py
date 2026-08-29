@@ -21,7 +21,7 @@ _cache: dict[str, Any] = {"data": None, "timestamp": 0.0}
 _cache_lock = threading.Lock()
 _SECRET_REFERENCE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
-TOP_CONSUMERS_LIMIT = 7
+TOP_CONSUMERS_LIMIT = 6
 TOP_CONSUMERS_NAME_LIMIT = 40
 TOP_CONSUMERS_CIRCUIT_LIMIT = 48
 

@@ -617,14 +617,20 @@ h2 { font-size: 24px; line-height: 1; }
 .energy-projections strong { display: block; margin-top: 6px; color: var(--telemetry); font-family: var(--display); font-size: 25px; line-height: 1; }
 .energy-projections > div:last-child strong { color: var(--frost); }
 
-.energy-consumers { padding: 15px 19px 17px; border-top: 1px solid var(--line); }
+.energy-consumers { padding: 15px 19px 0; border-top: 1px solid var(--line); }
 .energy-consumers__heading { display: flex; align-items: baseline; justify-content: space-between; }
 .energy-consumers__heading span { color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
 .energy-consumers__heading small { color: var(--muted); font-size: 9px; }
-.energy-consumers__list { margin: 9px 0 0; padding: 0; list-style: none; }
-.energy-consumer { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 10px; padding: 7px 0; }
+.energy-consumer-head, .energy-consumer { display: grid; grid-template-columns: minmax(0, 1fr) 40px 52px 58px; align-items: center; gap: 0 10px; }
+.energy-consumer-head { min-height: 20px; margin-top: 9px; color: #66787e; font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.energy-consumer-head span:not(:first-child) { text-align: right; }
+.energy-consumers__list { margin: 0; padding: 0; list-style: none; }
+.energy-consumer { padding: 7px 0; }
 .energy-consumer + .energy-consumer { border-top: 1px solid var(--line); }
 .energy-consumer__name { min-width: 0; overflow: hidden; color: var(--frost); font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.energy-consumer__share, .energy-consumer__est { text-align: right; font-family: var(--mono); font-size: 9px; }
+.energy-consumer__share { color: var(--muted); }
+.energy-consumer__est { color: var(--amber); }
 .energy-consumer > b { min-width: 52px; font-family: var(--mono); font-size: 11px; font-weight: 500; text-align: right; color: var(--frost); }
 
 .rack-power-hero { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr .9fr; min-height: 142px; border-bottom: 1px solid var(--line); }
@@ -652,8 +658,9 @@ h2 { font-size: 24px; line-height: 1; }
 .rack-load-row > span { color: var(--muted); font-family: var(--mono); font-size: 9px; }
 .rack-load-row > .rack-load-est { color: var(--amber); }
 .rack-load-row > strong { color: #cbd6d9; font-family: var(--mono); font-size: 9px; font-weight: 500; }
-.rack-power-footer { position: relative; z-index: 1; gap: 12px; font-size: 9px; }
-.rack-power-footer b { color: var(--frost); font-weight: 400; text-align: right; }
+.rack-power-footer, .energy-consumers-footer { position: relative; z-index: 1; gap: 12px; font-size: 9px; }
+.rack-power-footer b, .energy-consumers-footer b { color: var(--frost); font-weight: 400; text-align: right; }
+.energy-consumers-footer { margin: 0 -19px; }
 
 .pbs-vault { position: relative; z-index: 1; border-bottom: 1px solid var(--line-strong); background: linear-gradient(110deg, rgba(38, 79, 85, .11), rgba(8, 13, 16, .16) 58%); }
 .pbs-vault::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(var(--telemetry-rgb), .025) 1px, transparent 1px); background-size: 31px 100%; mask-image: linear-gradient(90deg, black, transparent 66%); }
@@ -883,8 +890,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--telemetry); out
   .rack-power-forecast > div + div { border-top: 0; border-left: 1px solid var(--line); }
   .rack-load-list { padding-right: 14px; padding-left: 14px; }
   .rack-load-head, .rack-load-row { grid-template-columns: minmax(100px, 1fr) 42px 52px 61px; gap: 6px; }
-  .rack-power-footer { align-items: flex-start; flex-direction: column; justify-content: center; padding-top: 9px; padding-bottom: 9px; }
-  .rack-power-footer b { text-align: left; }
+  .energy-consumer-head, .energy-consumer { grid-template-columns: minmax(0, 1fr) 36px 48px 54px; gap: 6px; }
+  .rack-power-footer, .energy-consumers-footer { align-items: flex-start; flex-direction: column; justify-content: center; padding-top: 9px; padding-bottom: 9px; }
+  .rack-power-footer b, .energy-consumers-footer b { text-align: left; }
   .pbs-vault__masthead { padding-right: 14px; padding-left: 14px; }
   .pbs-vault__grid { grid-template-columns: 1fr; }
   .pbs-capacity { padding-right: 14px; padding-left: 14px; border-right: 0; border-bottom: 1px solid var(--line); }
