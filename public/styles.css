@@ -271,14 +271,14 @@ main { max-width: 1800px; margin: 0 auto; padding: 24px 32px 42px; }
 .posture-count strong { font-family: var(--display); font-size: 35px; letter-spacing: .02em; line-height: 1; }
 .posture-count span { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .posture-count--up { color: var(--telemetry); }
-.posture-count--down { color: var(--danger); }
+.posture-count--down { color: var(--amber); }
 .posture-bar { display: flex; gap: 2px; height: 8px; margin-top: 10px; background: var(--rail); }
 .posture-bar > span { flex-basis: 0; min-width: 0; }
 .posture-bar__up { background: var(--telemetry); }
-.posture-bar__down { background: var(--danger); }
+.posture-bar__down { background: var(--amber); }
 .posture-bar__other { background: var(--muted); }
 .posture-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 3px 10px; margin-top: 7px; color: var(--muted); font-size: 9px; }
-.signal-metric--posture[data-state="down"] #posture-status { color: var(--danger); }
+.signal-metric--posture[data-state="down"] #posture-status { color: var(--amber); }
 .signal-metric--posture[data-state="up"] #posture-status { color: var(--telemetry); }
 .signal-metric--posture[data-state="up"] .posture-count--down,
 .signal-metric--posture:is([data-state="empty"], [data-state="stale"], [data-state="error"], [data-state="disabled"]) .posture-count { color: var(--muted); }
