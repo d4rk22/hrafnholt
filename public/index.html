@@ -119,10 +119,18 @@
           <div class="runway" id="ups-runway" aria-label="UPS battery charge unavailable"><span style="width: 0%"></span></div>
         </article>
 
-        <article class="signal-metric">
-          <div class="metric-heading"><span>Service posture</span><span class="data-source" id="posture-source">Not configured</span></div>
-          <div class="metric-value-row"><strong id="posture-healthy">—</strong><span>healthy</span><b class="metric-good"><span id="posture-down">—</span> <small>down</small></b></div>
-          <div class="posture-dots" aria-hidden="true"></div>
+        <article class="signal-metric signal-metric--posture" data-state="disabled">
+          <div class="metric-heading"><span>Service health</span><span class="data-source" id="posture-source">Not configured</span></div>
+          <div class="posture-counts">
+            <div class="posture-count posture-count--up"><strong id="posture-healthy">—</strong><span>up</span></div>
+            <div class="posture-count posture-count--down"><strong id="posture-down">—</strong><span>down</span></div>
+          </div>
+          <div class="posture-bar" id="posture-bar" role="img" aria-label="Service health unavailable. Not configured.">
+            <span class="posture-bar__up" id="posture-bar-up" hidden></span>
+            <span class="posture-bar__down" id="posture-bar-down" hidden></span>
+            <span class="posture-bar__other" id="posture-bar-other" hidden></span>
+          </div>
+          <div class="posture-footer"><span id="posture-total">Current status unknown</span><span id="posture-status">Not configured</span></div>
         </article>
       </section>
 
