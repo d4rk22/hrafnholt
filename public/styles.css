@@ -265,8 +265,24 @@ main { max-width: 1800px; margin: 0 auto; padding: 24px 32px 42px; }
 .micro-bars span { flex: 1; height: var(--bar); min-height: 4px; background: linear-gradient(to top, rgba(240,168,91,.22), rgba(240,168,91,.75)); }
 .runway { height: 4px; margin-top: 14px; background: var(--rail); }
 .runway span { display: block; height: 100%; background: linear-gradient(90deg, var(--telemetry), #bcead8); box-shadow: 0 0 12px rgba(var(--telemetry-rgb), 0.36); }
-.posture-dots { display: grid; grid-template-columns: repeat(21, 1fr); gap: 3px; margin-top: 13px; }
-.posture-dots::before { content: ""; grid-column: 1 / -1; height: 4px; background: repeating-linear-gradient(90deg, var(--telemetry) 0 8px, transparent 8px 12px); opacity: .74; }
+.signal-metric--posture .metric-heading { flex-wrap: wrap; gap: 4px 8px; }
+.posture-counts { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.posture-count { display: flex; align-items: baseline; gap: 8px; }
+.posture-count strong { font-family: var(--display); font-size: 35px; letter-spacing: .02em; line-height: 1; }
+.posture-count span { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.posture-count--up { color: var(--telemetry); }
+.posture-count--down { color: var(--danger); }
+.posture-bar { display: flex; gap: 2px; height: 8px; margin-top: 10px; background: var(--rail); }
+.posture-bar > span { flex-basis: 0; min-width: 0; }
+.posture-bar__up { background: var(--telemetry); }
+.posture-bar__down { background: var(--danger); }
+.posture-bar__other { background: var(--muted); }
+.posture-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 3px 10px; margin-top: 7px; color: var(--muted); font-size: 9px; }
+.signal-metric--posture[data-state="down"] #posture-status { color: var(--danger); }
+.signal-metric--posture[data-state="up"] #posture-status { color: var(--telemetry); }
+.signal-metric--posture[data-state="up"] .posture-count--down,
+.signal-metric--posture:is([data-state="empty"], [data-state="stale"], [data-state="error"], [data-state="disabled"]) .posture-count { color: var(--muted); }
+.signal-metric--posture:is([data-state="stale"], [data-state="other"]) #posture-status { color: var(--amber); }
 
 .dashboard-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
 .panel {

@@ -5,6 +5,12 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+### Changed
+
+- Replace the decorative service-posture dots with balanced up/down counts and
+  a proportional service-health bar. Pending, maintenance, and unknown monitors
+  occupy a neutral share; stale or unavailable data cannot appear healthy.
+
 ## [0.1.12] - 2026-09-06
 
 ### Fixed

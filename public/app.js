@@ -16,6 +16,7 @@ import {
   displayedPlexUsername,
   privacyModeKeyAction,
 } from "./privacy-mode.js";
+import { serviceHealthSummary } from "./service-health.js";
 
 const MAP_HOME_DECORATION_MARGIN = 54;
 const DEFAULT_CONFIGURATION = Object.freeze({
@@ -490,7 +491,6 @@ function renderHeadline(snapshot) {
   setText("#bandwidth-source", bandwidth.source);
   setText("#power-source", power.source);
   setText("#ups-source", ups.source);
-  setText("#posture-source", servicePosture.source);
   setText("#bandwidth-down", bandwidth.data ? number(bandwidth.data.downloadMbps, 1) : "—");
   setText("#bandwidth-up", bandwidth.data ? number(bandwidth.data.uploadMbps, 1) : "—");
   renderTraffic(bandwidth);
@@ -501,9 +501,31 @@ function renderHeadline(snapshot) {
   const runway = document.querySelector("#ups-runway");
   runway?.querySelector("span")?.style.setProperty("width", `${ups.data?.chargePercent ?? 0}%`);
   runway?.setAttribute("aria-label", ups.data ? `UPS battery charge ${number(ups.data.chargePercent)} percent` : "UPS battery charge unavailable");
-  setText("#posture-healthy", servicePosture.data ? number(servicePosture.data.healthy) : "—");
-  setText("#posture-down", servicePosture.data ? number(servicePosture.data.down) : "—");
-  document.querySelector("#posture-down")?.closest("b")?.classList.toggle("metric-bad", (servicePosture.data?.down ?? 0) > 0);
+  renderServiceHealth(servicePosture);
+}
+
+function renderServiceHealth(panel) {
+  const summary = serviceHealthSummary(panel);
+  const available = summary.healthy !== null;
+  const status = {
+    up: "All operational", down: "Needs attention", other: "Status incomplete",
+    empty: "No monitors", stale: "Stale data", error: "Data unavailable", disabled: "Not configured",
+  }[summary.state];
+  setText("#posture-source", panel.source);
+  setText("#posture-healthy", available ? number(summary.healthy) : "—");
+  setText("#posture-down", available ? number(summary.down) : "—");
+  setText("#posture-total", available ? `${number(summary.total)} monitored${summary.other ? ` · ${number(summary.other)} other` : ""}` : "Current status unknown");
+  setText("#posture-status", status);
+  document.querySelector(".signal-metric--posture")?.setAttribute("data-state", summary.state);
+  for (const [kind, share] of [["up", summary.upPercent], ["down", summary.downPercent], ["other", summary.otherPercent]]) {
+    const segment = document.querySelector(`#posture-bar-${kind}`);
+    segment?.style.setProperty("flex-grow", String(share));
+    segment?.toggleAttribute("hidden", share === 0);
+  }
+  const description = available
+    ? `${number(summary.healthy)} up, ${number(summary.down)} down${summary.other ? `, ${number(summary.other)} pending, maintenance or unknown` : ""}, out of ${number(summary.total)} monitored services. ${status}.`
+    : `Service health unavailable. ${status}.`;
+  document.querySelector("#posture-bar")?.setAttribute("aria-label", description);
 }
 
 function renderMap(streams) {
@@ -1193,6 +1215,7 @@ async function refreshDashboard() {
     if (!response.ok) throw new Error(`Snapshot request failed with HTTP ${response.status}`);
     renderSnapshot(await response.json());
   } catch (error) {
+    renderServiceHealth({ status: "error", data: null, source: document.querySelector("#posture-source")?.textContent ?? "Uptime Kuma" });
     document.querySelector("#runtime-banner")?.setAttribute("hidden", "");
     setText("#runtime-mode", "DASHBOARD ERROR");
     setText("#runtime-summary", error instanceof Error ? error.message : "Snapshot request failed");
