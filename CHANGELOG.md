@@ -5,6 +5,13 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.14] - 2026-09-06
+
+### Changed
+
+- Match service-health DOWN counts, bar segments, and attention text to the
+  dashboard’s existing amber REVIEW color.
+
 ## [0.1.13] - 2026-09-06
 
 ### Changed
