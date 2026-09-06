@@ -569,7 +569,7 @@ function renderMap(streams) {
   while (map.querySelectorAll(".map-city-label").length < cityGroups.length) {
     const label = document.createElementNS(svg, "g");
     label.setAttribute("class", "map-city-label");
-    label.innerHTML = "<rect rx=\"8\"></rect><text class=\"map-city\"></text>";
+    label.innerHTML = "<line class=\"map-label-connector\" hidden></line><rect rx=\"8\"></rect><text class=\"map-city\"></text>";
     map.appendChild(label);
   }
   const labels = [...map.querySelectorAll(".map-city-label")];
@@ -642,6 +642,15 @@ function renderMap(streams) {
     const { x: labelX, y: labelY } = position;
     labelNode.classList.toggle("map-city-label--transcode", group.count === 1 && group.streams[0].playbackMode === "transcode");
     labelNode.setAttribute("transform", `translate(${number(labelX, 1)} ${number(labelY, 1)}) scale(${overlayScale})`);
+    const connector = labelNode.querySelector(".map-label-connector");
+    connector?.toggleAttribute("hidden", !position.connector);
+    if (connector && position.connector) {
+      const { start, end } = position.connector;
+      connector.setAttribute("x1", String((start.x - labelX) / overlayScale));
+      connector.setAttribute("y1", String((start.y - labelY) / overlayScale));
+      connector.setAttribute("x2", String((end.x - labelX) / overlayScale));
+      connector.setAttribute("y2", String((end.y - labelY) / overlayScale));
+    }
     const rect = labelNode.querySelector("rect");
     const text = labelNode.querySelector("text");
     rect?.setAttribute("width", String(width));

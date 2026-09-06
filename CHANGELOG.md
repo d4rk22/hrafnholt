@@ -5,6 +5,17 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.12] - 2026-09-06
+
+### Fixed
+
+- Map labels stay close to crowded city markers, clear surrounding home
+  halos, and use nearby diagonal positions before distant rows. Placement
+  remains stable when streams change order, with subtle connectors for
+  displaced labels that avoid other markers and labels.
+- Update Fastify and its URI parsing dependencies to clear dependency
+  security advisories before release.
+
 ## [0.1.11] - 2026-08-29
 
 ### Changed
