@@ -5,6 +5,8 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.13] - 2026-09-06
+
 ### Changed
 
 - Replace the decorative service-posture dots with balanced up/down counts and
