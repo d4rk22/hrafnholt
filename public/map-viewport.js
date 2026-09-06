@@ -44,33 +44,105 @@ function boxesOverlap(a, b, padding = 0) {
     && a.bottom > b.top - padding;
 }
 
-// Places fixed-size SVG labels around their markers without allowing nearby
-// locations (or the home-core tag) to collapse into the same visual stack.
-// Callers can bias the first choice left/right so labels radiate away from the
-// home core instead of accumulating on one side of the map.
+function labelOverlapsObstacle(box, obstacle, padding) {
+  if (!obstacle.circle) return boxesOverlap(box, obstacle, padding);
+  const { x, y, radius } = obstacle.circle;
+  const nearestX = Math.max(box.left, Math.min(box.right, x));
+  const nearestY = Math.max(box.top, Math.min(box.bottom, y));
+  return Math.hypot(x - nearestX, y - nearestY) < radius + padding;
+}
+
+function mapLabelConnector({ x, y, markerRadius = 16 }, box, overlayScale, obstacles) {
+  const targetX = Math.max(box.left, Math.min(box.right, x));
+  const targetY = Math.max(box.top, Math.min(box.bottom, y));
+  const distance = Math.hypot(targetX - x, targetY - y);
+  if (distance <= (markerRadius + MAP_LABEL_VISIBLE_GAP + 12) * overlayScale) return null;
+  const dx = (targetX - x) / distance;
+  const dy = (targetY - y) / distance;
+  let startDistance = (markerRadius + 2) * overlayScale;
+  // Keep the line outside any larger halo enclosing the session marker.
+  obstacles.forEach(({ circle }) => {
+    if (!circle || Math.hypot(circle.x - x, circle.y - y) > circle.radius) return;
+    const cx = circle.x - x;
+    const cy = circle.y - y;
+    const along = cx * dx + cy * dy;
+    const across = cx * dy - cy * dx;
+    startDistance = Math.max(startDistance, along + Math.sqrt(Math.max(0, circle.radius ** 2 - across ** 2)) + overlayScale);
+  });
+  const endDistance = distance - 2 * overlayScale;
+  if (startDistance >= endDistance) return null;
+  return {
+    start: { x: x + dx * startDistance, y: y + dy * startDistance },
+    end: { x: x + dx * endDistance, y: y + dy * endDistance },
+  };
+}
+
+function connectorOverlapsObstacle({ start, end }, obstacle) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  if (obstacle.circle) {
+    const { x, y, radius } = obstacle.circle;
+    const t = Math.max(0, Math.min(1, ((x - start.x) * dx + (y - start.y) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(x - start.x - t * dx, y - start.y - t * dy) < radius;
+  }
+  // Intersect the segment's parameter interval with each rectangle axis.
+  let entry = 0;
+  let exit = 1;
+  for (const [origin, delta, min, max] of [[start.x, dx, obstacle.left, obstacle.right], [start.y, dy, obstacle.top, obstacle.bottom]]) {
+    if (delta === 0) {
+      if (origin < min || origin > max) return false;
+    } else {
+      const a = (min - origin) / delta;
+      const b = (max - origin) / delta;
+      entry = Math.max(entry, Math.min(a, b));
+      exit = Math.min(exit, Math.max(a, b));
+    }
+  }
+  return entry <= exit;
+}
+
+// Rank nearby positions by marker distance, then place the most constrained
+// labels first. Keep results in input order so labels retain their identities.
 export function layoutMapLabels(items, viewport, overlayScale, obstacles = []) {
   const edge = MAP_LABEL_EDGE_PADDING * overlayScale;
   const labelHeight = MAP_LABEL_HEIGHT * overlayScale;
   const baselineInset = 17 * overlayScale;
   const rowStep = (MAP_LABEL_HEIGHT + 8) * overlayScale;
   const verticalOffsets = [0, -rowStep, rowStep, -2 * rowStep, 2 * rowStep, -3 * rowStep, 3 * rowStep];
-  const occupied = [...obstacles];
+  const padding = 4 * overlayScale;
 
-  return items.map(({ x, y, width, preferredSide, markerRadius = 16 }) => {
+  const layouts = items.map(({ x, y, width, preferredSide, markerRadius = 16 }, index) => {
     const gap = (markerRadius + MAP_LABEL_VISIBLE_GAP) * overlayScale;
     const labelWidth = width * overlayScale;
     const minX = viewport.x + edge;
     const maxX = viewport.x + viewport.width - edge - labelWidth;
     const minTop = viewport.y + edge;
     const maxTop = viewport.y + viewport.height - edge - labelHeight;
+    // Preserve a naturally aligned position that fits with half the preferred
+    // margin. Full clamping would push it into its own halo and force a detour.
+    const clampX = (candidateX) => candidateX >= viewport.x + edge / 2
+      && candidateX + labelWidth <= viewport.x + viewport.width - edge / 2
+      ? candidateX : Math.min(maxX, Math.max(minX, candidateX));
     const preferred = preferredSide ?? (x <= viewport.x + viewport.width / 2 ? "right" : "left");
     const sideX = {
       right: x + gap,
       left: x - gap - labelWidth,
     };
+    let above = y - gap - labelHeight;
+    let below = y + gap;
+    // A session can lie inside a larger home halo without sharing its exact
+    // coordinates. Its candidates must clear that halo as well as its own.
+    obstacles.filter((obstacle) => x >= obstacle.left && x <= obstacle.right
+      && y >= obstacle.top && y <= obstacle.bottom).forEach((obstacle) => {
+      const clearance = (MAP_LABEL_VISIBLE_GAP - MAP_MARKER_LABEL_CLEARANCE) * overlayScale;
+      sideX.right = Math.max(sideX.right, obstacle.right + clearance);
+      sideX.left = Math.min(sideX.left, obstacle.left - clearance - labelWidth);
+      above = Math.min(above, obstacle.top - clearance - labelHeight);
+      below = Math.max(below, obstacle.bottom + clearance);
+    });
     const sideOrder = preferred === "left" ? ["left", "right"] : ["right", "left"];
     const createCandidate = (candidateX, candidateTop) => {
-      const left = Math.min(maxX, Math.max(minX, candidateX));
+      const left = clampX(candidateX);
       const top = Math.min(maxTop, Math.max(minTop, candidateTop));
       return {
         x: left,
@@ -78,27 +150,87 @@ export function layoutMapLabels(items, viewport, overlayScale, obstacles = []) {
         box: { left, right: left + labelWidth, top, bottom: top + labelHeight },
       };
     };
-    const sideCandidates = verticalOffsets.flatMap((offset) => sideOrder.map((side) => createCandidate(
-      sideX[side],
-      y - labelHeight / 2 + offset,
-    )));
+    const sideCandidates = sideOrder.flatMap((side) => {
+      const left = clampX(sideX[side]);
+      const tops = verticalOffsets.map((offset) => y - labelHeight / 2 + offset);
+      // Near an edge, clamping can move a label slightly toward its marker.
+      // Try the nearest clear diagonal around each circular halo, rather than
+      // jumping whole rows to clear the corners of a bounding rectangle.
+      obstacles.forEach((obstacle) => {
+        let top = obstacle.top - padding;
+        let bottom = obstacle.bottom + padding;
+        if (obstacle.circle) {
+          const circle = obstacle.circle;
+          const dx = circle.x - Math.max(left, Math.min(left + labelWidth, circle.x));
+          const radius = circle.radius + padding + .05 * overlayScale;
+          if (Math.abs(dx) >= radius) return;
+          const dy = Math.sqrt(radius ** 2 - dx ** 2);
+          top = circle.y - dy;
+          bottom = circle.y + dy;
+        } else if (left >= obstacle.right + padding || left + labelWidth <= obstacle.left - padding) return;
+        tops.push(top - labelHeight, bottom);
+      });
+      return tops.map((top) => createCandidate(left, top));
+    });
     const centeredCandidates = [
-      createCandidate(x - labelWidth / 2, y - gap - labelHeight),
-      createCandidate(x - labelWidth / 2, y + gap),
+      createCandidate(x - labelWidth / 2, above),
+      createCandidate(x - labelWidth / 2, below),
     ];
-    const candidates = [...sideCandidates.slice(0, 6), ...centeredCandidates, ...sideCandidates.slice(6)];
-    const safeCandidates = candidates.filter(({ box }) => obstacles.every((obstacle) => !boxesOverlap(box, obstacle, 4 * overlayScale)));
-    if (!safeCandidates.length) return { x, y, box: null, hidden: true };
-    const collisionFree = safeCandidates.find(({ box }) => occupied.every((other) => !boxesOverlap(box, other, 4 * overlayScale)));
-    if (!collisionFree) return { x, y, box: null, hidden: true };
-    occupied.push(collisionFree.box);
-    return { x: collisionFree.x, y: collisionFree.y, box: collisionFree.box };
+    const seen = new Set();
+    const candidates = [...sideCandidates, ...centeredCandidates].filter(({ box }) => {
+      const key = `${box.left}:${box.top}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return minX <= maxX && minTop <= maxTop
+        && obstacles.every((obstacle) => !labelOverlapsObstacle(box, obstacle, padding));
+    }).map((candidate) => {
+      const { box } = candidate;
+      const distance = Math.hypot(x - Math.max(box.left, Math.min(box.right, x)), y - Math.max(box.top, Math.min(box.bottom, y)));
+      const side = box.right <= x ? "left" : box.left >= x ? "right" : null;
+      // A nearby label should not look attached to a different city's marker.
+      const ambiguity = obstacles.reduce((penalty, obstacle) => {
+        if (!obstacle.circle || (x >= obstacle.left && x <= obstacle.right && y >= obstacle.top && y <= obstacle.bottom)) return penalty;
+        const other = obstacle.circle;
+        const otherDistance = Math.hypot(other.x - Math.max(box.left, Math.min(box.right, other.x)), other.y - Math.max(box.top, Math.min(box.bottom, other.y)));
+        return Math.max(penalty, (distance + padding - otherDistance) / overlayScale * 2);
+      }, 0);
+      const score = distance / overlayScale + Math.abs((box.top + box.bottom) / 2 - y) / overlayScale * .2
+        + (side === preferred ? 0 : 2) + ambiguity;
+      return { ...candidate, score, connector: mapLabelConnector(items[index], box, overlayScale, obstacles) };
+    }).filter(({ connector }) => !connector || obstacles.every((obstacle) => {
+      // A generic protected area can enclose the source; only circular halos
+      // have a known boundary at which the connector can start outside it.
+      if (!obstacle.circle && x >= obstacle.left && x <= obstacle.right && y >= obstacle.top && y <= obstacle.bottom) return true;
+      return !connectorOverlapsObstacle(connector, obstacle);
+    })).sort((a, b) => a.score - b.score || a.box.top - b.box.top || a.box.left - b.box.left);
+    const nearbyCount = candidates.filter(({ score }) => score <= markerRadius + MAP_LABEL_VISIBLE_GAP + MAP_LABEL_HEIGHT).length;
+    return { index, x, y, width, candidates, nearbyCount };
   });
+  layouts.sort((a, b) => a.nearbyCount - b.nearbyCount || a.x - b.x || a.y - b.y || b.width - a.width);
+  const occupied = [];
+  const connectors = [];
+  const results = new Array(items.length);
+  layouts.forEach(({ index, x, y, candidates }) => {
+    const placement = candidates.find(({ box, connector }) => occupied.every((other) => !boxesOverlap(box, other, padding)
+      && (!connector || !connectorOverlapsObstacle(connector, other)))
+      && connectors.every((other) => !connectorOverlapsObstacle(other, box)));
+    if (!placement) {
+      results[index] = { x, y, box: null, hidden: true, connector: null };
+      return;
+    }
+    occupied.push(placement.box);
+    if (placement.connector) connectors.push(placement.connector);
+    results[index] = {
+      x: placement.x, y: placement.y, box: placement.box,
+      connector: placement.connector,
+    };
+  });
+  return results;
 }
 
 export function mapMarkerObstacle({ x, y }, radius, overlayScale) {
   const extent = (radius + MAP_MARKER_LABEL_CLEARANCE) * overlayScale;
-  return { left: x - extent, right: x + extent, top: y - extent, bottom: y + extent };
+  return { left: x - extent, right: x + extent, top: y - extent, bottom: y + extent, circle: { x, y, radius: extent } };
 }
 
 // Curves around the direct line between endpoints instead of forcing the

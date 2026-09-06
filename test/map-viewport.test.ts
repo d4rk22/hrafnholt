@@ -211,6 +211,101 @@ test("map label layout stays inside the active viewport near both edges", () => 
   });
 });
 
+test("a session inside the home halo stays beside the cluster even with slightly different coordinates", () => {
+  const viewport = { x: 0, y: 0, width: 586, height: 447, zoom: 1 };
+  // Screen-space geometry from a crowded regional map; no location data needed.
+  const items = [
+    { x: 129.5, y: 249, width: 81.6, preferredSide: "right" },
+    { x: 147.5, y: 293, width: 107.2, preferredSide: "right" },
+    { x: 169.5, y: 181.5, width: 94.4, preferredSide: "right" },
+    { x: 80, y: 131.5, width: 88, preferredSide: "left" },
+    { x: 171, y: 331.5, width: 56, preferredSide: "right" },
+    { x: 506, y: 239, width: 88, preferredSide: "right" },
+    { x: 117.1, y: 258.6, width: 68.8, preferredSide: "right" },
+  ];
+  const obstacles = [mapMarkerObstacle({ x: 117, y: 258.5 }, 25, 1), ...items.map((p) => mapMarkerObstacle(p, 16, 1))];
+  const labels = layoutMapLabels(items, viewport, 1, obstacles);
+  const home = labels[6].box;
+  assert.ok(home);
+  assert.ok(home.right < 90, "home label sits to the left of the larger halo");
+  assert.ok(Math.abs((home.top + home.bottom) / 2 - 258.6) < 5, "home label stays level with its marker");
+});
+
+test("a small edge-margin adjustment preserves a clear aligned label beside the home halo", () => {
+  const item = { x: 108, y: 250, width: 68.8, preferredSide: "left", markerRadius: 25 };
+  const [label] = layoutMapLabels([item], { x: 0, y: 0, width: 580, height: 440 }, 1, [mapMarkerObstacle(item, 25, 1)]);
+  assert.ok(label.box.right < 108, "use the available space left of home");
+  assert.equal((label.box.top + label.box.bottom) / 2, 250, "stay aligned instead of jumping a row");
+  assert.ok(label.box.left >= 6, "retain breathing room at the map edge");
+});
+
+test("a crowded marker near the left edge gets a nearby label before flexible neighbors", () => {
+  const viewport = { x: 0, y: 0, width: 583, height: 447, zoom: 1 };
+  const items = [
+    { x: 163, y: 217, width: 94.4, preferredSide: "right" },
+    { x: 121, y: 288.5, width: 81.6, preferredSide: "right" },
+    { x: 69, y: 165, width: 88, preferredSide: "left" },
+    { x: 108, y: 298.5, width: 68.8, preferredSide: "right", markerRadius: 25 },
+    { x: 114.5, y: 233.5, width: 81.6, preferredSide: "right" },
+    { x: 516.5, y: 278, width: 88, preferredSide: "right" },
+  ];
+  const obstacles = [mapMarkerObstacle({ x: 108, y: 298.5 }, 25, 1), ...items.map((p) => mapMarkerObstacle(p, 16, 1))];
+  const labels = layoutMapLabels(items, viewport, 1, obstacles);
+  const crowded = labels[4].box;
+  assert.ok(crowded);
+  assert.ok(crowded.right < 114.5, "crowded label uses the open space to its left");
+  assert.ok(Math.abs((crowded.top + crowded.bottom) / 2 - 233.5) < 45, "label stays within one nearby diagonal");
+  assert.ok(labels.every(({ box }) => box), "neighboring labels remain visible");
+  const overlaps = (a, b) => a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 4 && a.bottom > b.top - 4;
+  labels.forEach(({ box }, index) => {
+    assert.ok(obstacles.every(({ circle }) => {
+      const dx = circle.x - Math.max(box.left, Math.min(box.right, circle.x));
+      const dy = circle.y - Math.max(box.top, Math.min(box.bottom, circle.y));
+      return Math.hypot(dx, dy) >= circle.radius + 4;
+    }), "labels clear the circular halos, including at diagonal positions");
+    assert.ok(labels.slice(index + 1).every((other) => !overlaps(box, other.box)));
+  });
+  const reordered = layoutMapLabels([...items].reverse(), viewport, 1, obstacles).reverse();
+  assert.deepEqual(reordered, labels, "stream ordering must not make labels jump");
+});
+
+test("displaced labels connect back to their marker while adjacent and hidden labels do not", () => {
+  const viewport = { x: 0, y: 0, width: 760, height: 420, zoom: 1 };
+  const item = { x: 200, y: 150, width: 90 };
+  const [nearby] = layoutMapLabels([item], viewport, 1, [mapMarkerObstacle(item, 16, 1)]);
+  assert.equal(nearby.connector, null);
+  const [distant] = layoutMapLabels([item], viewport, 1, [{ left: 140, right: 350, top: 80, bottom: 220 }]);
+  assert.ok(distant.connector, "a distant label has a leader line");
+  const { start, end } = distant.connector;
+  assert.ok(Math.hypot(start.x - item.x, start.y - item.y) > 16, "connector starts outside the marker halo");
+  assert.ok(Math.hypot(start.x - item.x, start.y - item.y) < 22, "connector remains attached to its own marker");
+  assert.ok(Math.min(Math.abs(end.x - distant.box.left), Math.abs(end.x - distant.box.right), Math.abs(end.y - distant.box.top), Math.abs(end.y - distant.box.bottom)) <= 2);
+  const [hidden] = layoutMapLabels([item], viewport, 1, [{ left: 0, right: 760, top: 0, bottom: 420 }]);
+  assert.equal(hidden.hidden, true);
+  assert.equal(hidden.connector, null);
+});
+
+test("fallback connectors cannot attach to another city's marker", () => {
+  const items = [
+    { x: 116, y: 117, width: 98 }, { x: 123, y: 146, width: 109 },
+    { x: 173, y: 206, width: 60 }, { x: 260, y: 214, width: 78 },
+    { x: 165, y: 223, width: 67 },
+  ];
+  const labels = layoutMapLabels(items, { x: 0, y: 0, width: 400, height: 340 }, 1, items.map((p) => mapMarkerObstacle(p, 16, 1)));
+  assert.ok(labels.every(({ box }) => box), "a clear alternative keeps every label visible");
+  labels.forEach(({ connector }, index) => {
+    if (!connector) return;
+    const { start, end } = connector;
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    items.forEach((point, otherIndex) => {
+      if (index === otherIndex) return;
+      const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy)));
+      assert.ok(Math.hypot(point.x - start.x - t * dx, point.y - start.y - t * dy) >= 18.5, "leader clears unrelated marker halos");
+    });
+  });
+});
+
 test("northbound routes bow sideways without overshooting their destination", () => {
   const control = calculateRouteControlPoint({ x: 360, y: 300 }, { x: 360, y: 100 });
 

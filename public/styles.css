@@ -337,6 +337,7 @@ h2 { font-size: 24px; line-height: 1; }
 .map-node--home .node-ring { fill: rgba(38,26,15,.84); stroke: var(--amber); }
 .map-node--home .node-core { fill: var(--amber); }
 .map-city-label rect { fill: rgba(8, 15, 19, .86); stroke: rgba(203, 231, 237, .25); stroke-width: .8; }
+.map-label-connector { stroke: rgba(203, 231, 237, .4); stroke-width: 1; stroke-linecap: round; vector-effect: non-scaling-stroke; pointer-events: none; }
 .map-city { fill: var(--frost); font-family: var(--mono); font-size: 9px; letter-spacing: .12em; }
 .map-city-label--transcode rect { stroke: rgba(159,145,255,.34); }
 .map-label { position: absolute; z-index: 2; top: 18px; left: 18px; color: var(--amber); font-family: var(--mono); font-size: 9px; letter-spacing: .13em; }
