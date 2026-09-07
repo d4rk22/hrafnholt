@@ -5,6 +5,16 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+## [0.1.15] - 2026-09-07
+
+### Changed
+
+- Label Internet telemetry with its UniFi Network source and show purple upload
+  above the baseline with teal download below.
+- Use teal Rack draw bars and purple estimated costs in both energy ledgers.
+- Use purple for running verification and garbage collection states while
+  preserving amber warnings.
+
 ## [0.1.14] - 2026-09-06
 
 ### Changed
