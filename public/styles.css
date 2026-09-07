@@ -234,12 +234,12 @@ main { max-width: 1800px; margin: 0 auto; padding: 24px 32px 42px; }
 .signal-metric--network[data-state="stale"] { box-shadow: inset 0 0 0 1px rgba(240,168,91,.23); }
 .signal-metric--network[data-state="error"] { box-shadow: inset 0 0 0 1px rgba(255,111,112,.23); }
 .traffic-metric { position: absolute; z-index: 3; left: 18px; width: 64px; pointer-events: none; }
-.traffic-metric--download { top: 32px; }
-.traffic-metric--upload { top: 72px; }
+.traffic-metric--upload { top: 32px; }
+.traffic-metric--download { top: 72px; }
 .traffic-metric__label { display: block; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .09em; line-height: 1; text-transform: uppercase; }
 .traffic-metric__label b { font-size: 10px; }
 .traffic-metric--download .traffic-metric__label { color: var(--telemetry); }
-.traffic-metric--upload .traffic-metric__label { color: var(--amber); }
+.traffic-metric--upload .traffic-metric__label { color: var(--violet); }
 .traffic-metric > span:last-child { display: flex; align-items: baseline; gap: 5px; margin-top: 2px; }
 .traffic-metric strong { font-family: var(--display); font-size: 21px; letter-spacing: .02em; line-height: 1; }
 .traffic-metric small { color: #9eacb1; font-family: var(--body); font-size: 9px; }
@@ -249,20 +249,20 @@ main { max-width: 1800px; margin: 0 auto; padding: 24px 32px 42px; }
 .traffic-chart__area--upload { fill: url(#upload-fill); }
 .traffic-chart__line { fill: none; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .traffic-chart__line--download { stroke: var(--telemetry); }
-.traffic-chart__line--upload { stroke: var(--amber); }
+.traffic-chart__line--upload { stroke: var(--violet); }
 .traffic-chart__baseline { stroke: rgba(191,215,221,.28); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .traffic-chart__crosshair { stroke: rgba(231,239,241,.32); stroke-width: 1; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
 .traffic-chart__point { stroke: var(--obsidian); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .traffic-chart__point--download { fill: var(--telemetry); }
-.traffic-chart__point--upload { fill: var(--amber); }
+.traffic-chart__point--upload { fill: var(--violet); }
 .traffic-chart__hit { fill: transparent; cursor: crosshair; }
 .traffic-tooltip { position: absolute; z-index: 5; top: 34px; left: var(--tooltip-x); display: grid; min-width: 108px; padding: 6px 8px; border: 1px solid var(--line-strong); background: rgba(6,11,14,.94); box-shadow: 0 8px 22px rgba(0,0,0,.38); font-family: var(--mono); font-size: 9px; line-height: 1.45; pointer-events: none; transform: translateX(-50%); }
 .traffic-tooltip time { margin-bottom: 2px; color: #b7c3c7; }
 .traffic-tooltip__download { color: var(--telemetry); }
-.traffic-tooltip__upload { color: var(--amber); }
+.traffic-tooltip__upload { color: var(--violet); }
 .traffic-empty { position: absolute; z-index: 3; right: 14px; bottom: 28px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; }
 .micro-bars { display: flex; align-items: end; gap: 4px; height: 24px; margin-top: 8px; }
-.micro-bars span { flex: 1; height: var(--bar); min-height: 4px; background: linear-gradient(to top, rgba(240,168,91,.22), rgba(240,168,91,.75)); }
+.micro-bars span { flex: 1; height: var(--bar); min-height: 4px; background: linear-gradient(to top, rgba(var(--telemetry-rgb),.22), rgba(var(--telemetry-rgb),.75)); }
 .runway { height: 4px; margin-top: 14px; background: var(--rail); }
 .runway span { display: block; height: 100%; background: linear-gradient(90deg, var(--telemetry), #bcead8); box-shadow: 0 0 12px rgba(var(--telemetry-rgb), 0.36); }
 .signal-metric--posture .metric-heading { flex-wrap: wrap; gap: 4px 8px; }
@@ -647,7 +647,7 @@ h2 { font-size: 24px; line-height: 1; }
 .energy-consumer__name { min-width: 0; overflow: hidden; color: var(--frost); font-size: 11px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .energy-consumer__share, .energy-consumer__est { text-align: right; font-family: var(--mono); font-size: 9px; }
 .energy-consumer__share { color: var(--muted); }
-.energy-consumer__est { color: var(--amber); }
+.energy-consumer__est { color: var(--violet); }
 .energy-consumer > b { min-width: 52px; font-family: var(--mono); font-size: 11px; font-weight: 500; text-align: right; color: var(--frost); }
 
 .rack-power-hero { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr .9fr; min-height: 142px; border-bottom: 1px solid var(--line); }
@@ -662,7 +662,7 @@ h2 { font-size: 24px; line-height: 1; }
 .rack-power-forecast > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; padding: 12px 15px; }
 .rack-power-forecast > div + div { border-top: 1px solid var(--line); }
 .rack-power-forecast strong { color: var(--telemetry); font-family: var(--display); font-size: 23px; line-height: 1; text-align: right; white-space: nowrap; }
-.rack-power-forecast > div:last-child strong { color: var(--amber); }
+.rack-power-forecast > div:last-child strong { color: var(--violet); }
 .rack-load-list { position: relative; z-index: 1; padding: 6px 17px 8px; }
 .rack-load-head, .rack-load-row { display: grid; grid-template-columns: minmax(110px, 1fr) 52px 56px 63px; align-items: center; gap: 10px; }
 .rack-load-head { min-height: 28px; color: #66787e; font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
@@ -673,7 +673,7 @@ h2 { font-size: 24px; line-height: 1; }
 .rack-load-bar { height: 2px; margin-top: 5px; }
 .rack-load-bar i { display: block; width: var(--fill); height: 100%; background: var(--blue); }
 .rack-load-row > span { color: var(--muted); font-family: var(--mono); font-size: 9px; }
-.rack-load-row > .rack-load-est { color: var(--amber); }
+.rack-load-row > .rack-load-est { color: var(--violet); }
 .rack-load-row > strong { color: #cbd6d9; font-family: var(--mono); font-size: 9px; font-weight: 500; }
 .rack-power-footer, .energy-consumers-footer { position: relative; z-index: 1; gap: 12px; font-size: 9px; }
 .rack-power-footer b, .energy-consumers-footer b { color: var(--frost); font-weight: 400; text-align: right; }
@@ -715,7 +715,8 @@ h2 { font-size: 24px; line-height: 1; }
 .pbs-assurance span { min-height: 25px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .07em; line-height: 1.35; text-transform: uppercase; }
 .pbs-assurance strong { display: block; margin-top: 7px; color: var(--telemetry); font-family: var(--display); font-size: 24px; letter-spacing: .02em; line-height: .95; }
 .pbs-assurance small { display: block; margin-top: 7px; color: #82949a; font-family: var(--mono); font-size: 9px; line-height: 1.45; }
-.pbs-assurance section[data-state="warning"] strong, .pbs-assurance section[data-state="running"] strong { color: var(--amber); }
+.pbs-assurance section[data-state="warning"] strong { color: var(--amber); }
+.pbs-assurance section[data-state="running"] strong { color: var(--violet); }
 .pbs-assurance section[data-state="failure"] strong, .pbs-assurance section[data-state="unavailable"] strong { color: #e89191; }
 .backup-ledger-heading { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; min-height: 34px; padding: 0 18px; color: #9aabb0; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 9px; letter-spacing: .09em; text-transform: uppercase; }
 .backup-ledger-heading small { color: #61747a; font-size: 9px; letter-spacing: .04em; }
