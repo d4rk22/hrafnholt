@@ -28,7 +28,7 @@ const DEFAULT_CONFIGURATION = Object.freeze({
   units: { temperature: "celsius" },
   associations: { plex_host_proxmox_node: null },
 });
-const TRAFFIC_PLOT = { left: 78, right: 299, baseline: 39, downloadTop: 6, downloadZero: 36, uploadZero: 42, uploadBottom: 72 };
+const TRAFFIC_PLOT = { left: 78, right: 299, baseline: 39, uploadTop: 6, uploadZero: 36, downloadZero: 42, downloadBottom: 72 };
 const CAPACITY_PLOT = { left: 48, right: 696, top: 16, bottom: 164 };
 const WORKLOAD_PLOT = { left: 48, right: 696, top: 8, bottom: 62 };
 const CAPACITY_WINDOWS = Object.freeze({
@@ -152,7 +152,7 @@ function setTrafficFocus(index, announce = false) {
   const time = Number.isNaN(sampledAt.getTime()) ? "Time unavailable" : sampledAt.toLocaleTimeString(presentation.locale, {
     timeZone: presentation.timezone, hour: "numeric", minute: "2-digit", second: "2-digit",
   });
-  tooltip.innerHTML = `<time>${escapeHtml(time)}</time><span class="traffic-tooltip__download">↓ ${escapeHtml(number(point.sample.downloadMbps, 3))} Mbps</span><span class="traffic-tooltip__upload">↑ ${escapeHtml(number(point.sample.uploadMbps, 3))} Mbps</span>`;
+  tooltip.innerHTML = `<time>${escapeHtml(time)}</time><span class="traffic-tooltip__upload">↑ ${escapeHtml(number(point.sample.uploadMbps, 3))} Mbps</span><span class="traffic-tooltip__download">↓ ${escapeHtml(number(point.sample.downloadMbps, 3))} Mbps</span>`;
   tooltip.style.setProperty("--tooltip-x", `${Math.max(36, Math.min(82, point.x / 3))}%`);
   tooltip.toggleAttribute("hidden", false);
   if (announce) tooltip.setAttribute("aria-live", "polite");
@@ -177,8 +177,8 @@ function renderTraffic(panel) {
     return {
       sample,
       x,
-      downloadY: TRAFFIC_PLOT.downloadZero - sample.downloadMbps / downloadMax * (TRAFFIC_PLOT.downloadZero - TRAFFIC_PLOT.downloadTop),
-      uploadY: TRAFFIC_PLOT.uploadZero + sample.uploadMbps / uploadMax * (TRAFFIC_PLOT.uploadBottom - TRAFFIC_PLOT.uploadZero),
+      downloadY: TRAFFIC_PLOT.downloadZero + sample.downloadMbps / downloadMax * (TRAFFIC_PLOT.downloadBottom - TRAFFIC_PLOT.downloadZero),
+      uploadY: TRAFFIC_PLOT.uploadZero - sample.uploadMbps / uploadMax * (TRAFFIC_PLOT.uploadZero - TRAFFIC_PLOT.uploadTop),
     };
   });
   const download = trafficPoints.map((point) => ({ x: point.x, y: point.downloadY }));
@@ -191,8 +191,8 @@ function renderTraffic(panel) {
   chart.querySelector(".traffic-chart__area--upload")?.setAttribute("d", upload.length ? `M${upload[0].x},${TRAFFIC_PLOT.baseline} ${uploadLine.replace(/^M/, "L")} L${upload.at(-1).x},${TRAFFIC_PLOT.baseline} Z` : "");
   document.querySelector("#traffic-empty")?.toggleAttribute("hidden", samples.length > 0);
   chart.setAttribute("aria-label", samples.length
-    ? `House traffic history with ${samples.length} aligned samples. Current download ${number(panel.data.downloadMbps, 3)} megabits per second and upload ${number(panel.data.uploadMbps, 3)} megabits per second.`
-    : `House traffic ${panel.status === "error" ? "unavailable" : "waiting for samples"}.`);
+    ? `Internet traffic history with ${samples.length} aligned samples. Upload above the baseline, download below. Current upload ${number(panel.data.uploadMbps, 3)} megabits per second and download ${number(panel.data.downloadMbps, 3)} megabits per second.`
+    : `Internet traffic ${panel.status === "error" ? "unavailable" : "waiting for samples"}.`);
   hideTrafficFocus();
 }
 
