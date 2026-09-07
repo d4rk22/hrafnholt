@@ -68,23 +68,23 @@
 
     <main id="main-content">
       <section class="signal-strip" aria-label="Homelab headline telemetry">
-        <article class="signal-metric signal-metric--network" aria-label="House traffic">
+        <article class="signal-metric signal-metric--network" aria-label="Internet traffic">
           <div class="metric-heading">
-            <span>House traffic</span>
+            <span>Internet</span>
             <span class="data-source" id="bandwidth-source">Not configured</span>
-          </div>
-          <div class="traffic-metric traffic-metric--download">
-            <span class="traffic-metric__label">Download <b aria-hidden="true">↓</b></span>
-            <span><strong id="bandwidth-down">—</strong><small>Mbps</small></span>
           </div>
           <div class="traffic-metric traffic-metric--upload">
             <span class="traffic-metric__label">Upload <b aria-hidden="true">↑</b></span>
             <span><strong id="bandwidth-up">—</strong><small>Mbps</small></span>
           </div>
-          <svg class="traffic-chart" id="traffic-chart" viewBox="0 0 300 78" preserveAspectRatio="none" role="img" aria-label="House download and upload history unavailable" tabindex="0">
+          <div class="traffic-metric traffic-metric--download">
+            <span class="traffic-metric__label">Download <b aria-hidden="true">↓</b></span>
+            <span><strong id="bandwidth-down">—</strong><small>Mbps</small></span>
+          </div>
+          <svg class="traffic-chart" id="traffic-chart" viewBox="0 0 300 78" preserveAspectRatio="none" role="img" aria-label="Internet upload and download history unavailable" tabindex="0">
             <defs>
-              <linearGradient id="download-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63d5c6" stop-opacity=".26"/><stop offset="1" stop-color="#63d5c6" stop-opacity=".025"/></linearGradient>
-              <linearGradient id="upload-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0a85b" stop-opacity=".025"/><stop offset="1" stop-color="#f0a85b" stop-opacity=".25"/></linearGradient>
+              <linearGradient id="download-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63d5c6" stop-opacity=".025"/><stop offset="1" stop-color="#63d5c6" stop-opacity=".26"/></linearGradient>
+              <linearGradient id="upload-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--violet)" stop-opacity=".25"/><stop offset="1" stop-color="var(--violet)" stop-opacity=".025"/></linearGradient>
             </defs>
             <path class="traffic-chart__area traffic-chart__area--download" />
             <path class="traffic-chart__area traffic-chart__area--upload" />
@@ -541,7 +541,7 @@
         <p class="dialog-intro">Collection stays separate from presentation. Tracearr is the first choice for Plex activity wherever its API exposes the needed field.</p>
         <div class="source-map-table">
           <div class="source-map-row"><strong>Plex streams + location</strong><span>Tracearr</span><small>Plex fallback only for missing session detail</small></div>
-          <div class="source-map-row"><strong>House bandwidth</strong><span>UniFi Network</span><small>Netdata host aggregation fallback</small></div>
+          <div class="source-map-row"><strong>Internet bandwidth</strong><span>UniFi Network</span><small>Netdata host aggregation fallback</small></div>
           <div class="source-map-row"><strong>Rack energy</strong><span>UniFi PDU</span><small>Read-only outlet metering · cost uses the current Emporia rate</small></div>
           <div class="source-map-row"><strong>GPU + host telemetry</strong><span>Netdata</span><small>nvidia-smi collector on Plex host</small></div>
           <div class="source-map-row"><strong>Energy ledger + UPS</strong><span>Configured energy / SNMPv3</span><small>Configured rate model via internal provider sidecar + SNMPv3 GET-only</small></div>

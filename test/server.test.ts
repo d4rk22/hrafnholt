@@ -145,7 +145,7 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.doesNotMatch(client.body, /data\.currentWatts \/ 1_000 \* 24 \* 30/);
   assert.match(client.body, /<span>Share<\/span><span>Est<\/span><span>Now<\/span>/);
   assert.match(client.body, /estimatedCost \* share \/ 100/);
-  assert.match(styles.body, /\.rack-load-row > \.rack-load-est[^}]*color:\s*var\(--amber\)/);
+  assert.match(styles.body, /\.rack-load-row > \.rack-load-est[^}]*color:\s*var\(--violet\)/);
   assert.match(client.body, /<span>Incremental size<\/span>/);
   assert.match(client.body, /backupDuration\(job\.durationSeconds\)/);
   assert.match(client.body, /dataSize\(job\.transferredBytes\)/);

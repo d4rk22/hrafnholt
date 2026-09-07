@@ -126,7 +126,11 @@ export function createCollectorRuntime(config: DashboardConfig): CollectorRuntim
       tlsVerify: instance.tls_verify,
     };
     const read = createUniFiReadClient(options);
-    collectors.push(applyRuntimeOptions(createUniFiCollector(options, read), [instance]));
+    // The integration name can also describe its PDU; identify the WAN source separately.
+    collectors.push({
+      ...applyRuntimeOptions(createUniFiCollector(options, read), [instance]),
+      source: "UniFi Network",
+    });
     if (instance.pdu) {
       collectors.push(applyRuntimeOptions(createUniFiPduCollector({
         ...options,
