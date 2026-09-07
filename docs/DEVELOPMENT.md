@@ -7,6 +7,33 @@
 - Python 3.12 for the energy sidecar
 - Docker for local image checks
 
+Get the source first (requires Git):
+
+```bash
+git clone https://github.com/d4rk22/hrafnholt.git
+cd hrafnholt
+```
+
+For a demo after installing the Node.js version above:
+
+```bash
+npm ci
+npm run build
+HRAFNHOLT_CONFIG=./hrafnholt.example.yml npm start
+```
+
+Open <http://localhost:3000>. The environment-variable syntax above is for
+Mac/Linux shells. In PowerShell, set it before starting:
+
+```powershell
+$env:HRAFNHOLT_CONFIG = "./hrafnholt.example.yml"
+npm start
+```
+
+The example constructs no live collector and uses only synthetic data. Other
+review states include `/?demo=empty`, `/?demo=stale`, `/?demo=degraded`,
+`/?demo=collector-failure`, and `/?demo=privacy`.
+
 Install and run the normal validation suite from this directory:
 
 ```bash

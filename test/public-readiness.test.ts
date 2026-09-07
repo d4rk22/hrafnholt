@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { parse } from "yaml";
 
 const dashboardRoot = fileURLToPath(new URL("..", import.meta.url));
-const candidateRoots = [".github", "src", "public", "fixtures", "test", "energy", "docs", "scripts"];
+const candidateRoots = [".github", "src", "public", "fixtures", "test", "energy", "docs", "scripts", "examples"];
 const runtimeEntryFiles = [
   ".dockerignore",
   ".env.example",
@@ -145,6 +145,7 @@ test("public application documentation is complete and has no broken local links
     "SECURITY.md",
     "docs/ARCHITECTURE.md",
     "docs/SETUP.md",
+    "docs/ENERGY-SETUP.md",
     "docs/SECRETS.md",
     "docs/COLLECTORS.md",
     "docs/SECURITY.md",

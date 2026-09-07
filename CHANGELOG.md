@@ -5,6 +5,12 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+### Documentation
+
+- Add a demo screenshot, Docker-first quick start, and guided Compose examples
+  for sample data, Uptime Kuma, Sonarr, and optional Emporia energy.
+- Clarify startup checks, secret-file permissions, network access, and updates.
+
 ## [0.1.15] - 2026-09-07
 
 ### Changed

@@ -1,0 +1,10 @@
+# Optional override: use with compose.yaml after following docs/SETUP.md.
+services:
+  dashboard:
+    environment:
+      SONARR_API_KEY_FILE: /run/secrets/sonarr_api_key
+    secrets:
+      - sonarr_api_key
+secrets:
+  sonarr_api_key:
+    file: ./secrets/sonarr_api_key.txt
