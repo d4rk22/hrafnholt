@@ -1,0 +1,48 @@
+# Emporia example: replace device/channel selectors and rates before starting.
+schema_version: 1
+mode: live
+server:
+  host: 0.0.0.0
+  port: 3000
+  log_level: info
+presentation:
+  branding:
+    title: Hrafnholt
+    subtitle: My home dashboard
+    home_label: Home
+  locale: en-US
+  timezone: UTC
+  home: null
+  privacy:
+    default_mode: public
+    allow_private_toggle: false
+  units:
+    temperature: celsius
+collectors:
+  - type: energy
+    id: energy
+    name: Home energy
+    url: http://energy:8080
+    timeout_seconds: 30
+
+energy:
+  provider: emporia
+  username_ref: ENERGY_USERNAME
+  password_ref: ENERGY_PASSWORD
+  device_id: 12345
+  channels:
+    server: "1"
+    climate: "2"
+    mains: "1,2,3"
+  rates:
+    currency: USD
+    tax_rate: 0.05
+    fixed_monthly: 10.00
+    seasons:
+      - name: cool
+        months: [1, 2, 3, 4, 5, 10, 11, 12]
+        price_per_kwh: 0.10
+      - name: warm
+        months: [6, 7, 8, 9]
+        price_per_kwh: 0.20
+  cache_ttl_seconds: 60

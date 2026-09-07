@@ -23,3 +23,6 @@ blob-report/
 **/.cache/ms-playwright/
 fixtures/sources/
 *.log
+
+# User-managed runtime credentials for Compose examples.
+secrets/

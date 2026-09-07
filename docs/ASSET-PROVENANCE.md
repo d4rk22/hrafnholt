@@ -70,9 +70,18 @@ fixture, or the container filesystem. The operator is responsible for access
 and display rights for their media artwork. A missing poster leaves the card's
 first-party monogram fallback in place.
 
-No screenshot is tracked. Demo browser evidence, reports, profiles, caches,
-and incidental image output are ignored and excluded from the container build
-context.
+`docs/images/dashboard-demo.png` (SHA-256 `3928e9a2df31f421aa1ddf15506a087711f887496b23f434d5020fcfbef54c3f`) is the
+README screenshot, captured on 2026-09-07 from the published v0.1.15 dashboard
+in healthy demo mode at a 1600 × 1080 viewport. It contains only the repository's
+synthetic fixture data, original HTML/CSS and the reviewed Natural Earth map.
+No live service, credential, production response, poster artwork, or personal
+screenshot was used. Browser checks confirmed fixture mode and zero external
+requests; the image was visually reviewed before publication. Redistribute
+under the project Apache-2.0 license, with the map rights noted above.
+
+This explicitly published screenshot is documentation only, excluded from
+container build context by `docs`. Incidental browser evidence, reports,
+profiles, and caches remain ignored.
 
 ## Visual files removed from production dependencies
 
