@@ -26,3 +26,4 @@ fixtures/sources/
 
 # User-managed runtime credentials for Compose examples.
 secrets/
+.site-dist/

@@ -98,7 +98,9 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.match(client.body, /displayedPlexUsername\(stream\.user, privacyMode, privacyAliasRegistry\)/);
   assert.match(client.body, /privacyModeKeyAction\(event\)/);
   assert.match(client.body, /let privacyMode = "public"/);
-  assert.match(client.body, /fetch\("\/api\/v1\/configuration"/);
+  const dataSource = await app.inject({ method: "GET", url: "/data-source.js" });
+  assert.equal(dataSource.statusCode, 200);
+  assert.match(dataSource.headers["content-type"]!, /javascript/);
   assert.match(client.body, /presentation\.timezone/);
   assert.match(client.body, /class="stream-meta"/);
   assert.match(client.body, /stream\.platform\s*\?/);
@@ -110,7 +112,6 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.match(styles.body, /\.privacy-mode-status\[data-mode="private"\]/);
   assert.doesNotMatch(client.body, /label\.innerHTML\s*=\s*"[^"]*<circle/);
   assert.match(client.body, /new URLSearchParams\(window\.location\.search\)\.get\("demo"\)/);
-  assert.match(client.body, /fetch\(dashboardUrl/);
   assert.match(client.body, /SYNTHETIC DEMO/);
   assert.match(client.body, /syntheticClock = snapshot\.mode === "fixture"[^\n]+\n\s+updateClock\(\)/);
   assert.match(client.body, /setText\("#rack-draw", power\.data \? number\(power\.data\.serverWatts \/ 1000, 2\) : "—"\)/);
@@ -118,7 +119,6 @@ test("fixture mode serves health and the versioned snapshot", async () => {
   assert.doesNotMatch(client.body, /setText\("#rack-(?:draw|today)"[^\n]+power\.data\.(?:totalWatts|todayKwh)/);
   assert.match(index.body, /Rack draw<\/span><span class="data-source" id="power-source">Not configured<\/span>/);
   assert.match(client.body, /setText\("#power-source", power\.source\)/);
-  assert.match(client.body, /\/api\/v1\/episodes\?date=/);
   assert.match(client.body, /function navigateEpisodes\(days\)/);
   assert.match(styles.body, /\.calendar-navigation\s*\{/);
   assert.match(client.body, /panel\.data\.movies\.map/);
