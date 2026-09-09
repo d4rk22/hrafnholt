@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { parse } from "yaml";
 
 const dashboardRoot = fileURLToPath(new URL("..", import.meta.url));
-const candidateRoots = [".github", "src", "public", "fixtures", "test", "energy", "docs", "scripts", "examples"];
+const candidateRoots = [".github", "src", "public", "fixtures", "test", "energy", "docs", "scripts", "examples", "site"];
 const runtimeEntryFiles = [
   ".dockerignore",
   ".env.example",

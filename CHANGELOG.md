@@ -7,6 +7,9 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ### Added
 
+- Publish a static project website and interactive showcase at hrafnholt.com,
+  with synthetic JSON generated at build time and no runtime backend.
+
 - Add a credential-free `showcase` demo with dense synthetic history, fictional
   media and original poster art, consistent energy totals, and a full-page
   documentation screenshot.

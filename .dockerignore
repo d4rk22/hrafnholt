@@ -25,3 +25,5 @@ docs
 **/secrets
 .env
 .env.*
+site
+.site-dist

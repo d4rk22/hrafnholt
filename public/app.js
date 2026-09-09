@@ -17,6 +17,11 @@ import {
   privacyModeKeyAction,
 } from "./privacy-mode.js";
 import { serviceHealthSummary } from "./service-health.js";
+import { createDashboardSource } from "./data-source.js";
+
+const dataSource = createDashboardSource({
+  staticDataUrl: document.documentElement.dataset.staticDemo === "true" ? new URL("./data.json", import.meta.url).href : null,
+});
 
 const MAP_HOME_DECORATION_MARGIN = 54;
 const DEFAULT_CONFIGURATION = Object.freeze({
@@ -813,10 +818,8 @@ async function navigateEpisodes(days) {
   panel?.setAttribute("aria-busy", "true");
   buttons.forEach((button) => { button.disabled = true; });
   try {
-    const demoQuery = requestedDemoState ? `&demo=${encodeURIComponent(requestedDemoState)}` : "";
-    const response = await fetch(`/api/v1/episodes?date=${encodeURIComponent(targetDate)}${demoQuery}`, { headers: { accept: "application/json" }, cache: "no-store" });
-    if (!response.ok) throw new Error(`Episode calendar request failed with HTTP ${response.status}`);
-    renderEpisodes({ status: "ok", source: currentEpisodesPanel?.source ?? "Sonarr", message: null, data: await response.json() }, targetDate);
+    const data = await dataSource.episodes(targetDate, requestedDemoState);
+    renderEpisodes({ status: "ok", source: currentEpisodesPanel?.source ?? "Sonarr", message: null, data }, targetDate);
   } catch (error) {
     renderEpisodes({ status: "error", source: currentEpisodesPanel?.source ?? "Sonarr", message: error instanceof Error ? error.message : "Episode calendar request failed", data: null }, targetDate);
   } finally {
@@ -1176,9 +1179,7 @@ function initializePrivacyMode() {
 }
 
 async function loadPresentationConfiguration() {
-  const response = await fetch("/api/v1/configuration", { headers: { accept: "application/json" }, cache: "no-store" });
-  if (!response.ok) throw new Error(`Configuration request failed with HTTP ${response.status}`);
-  presentation = await response.json();
+  presentation = await dataSource.configuration();
   if (presentation.privacy?.aliases?.length) {
     privacyAliasRegistry = createPrivacyAliasRegistry(undefined, presentation.privacy.aliases);
     if (latestStreamsPanel) renderStreams(latestStreamsPanel);
@@ -1211,16 +1212,13 @@ async function refreshDashboard() {
   if (refreshInFlight) return;
   refreshInFlight = true;
   try {
-    const dashboardUrl = requestedDemoState ? `/api/v1/dashboard?demo=${encodeURIComponent(requestedDemoState)}` : "/api/v1/dashboard";
-    const response = await fetch(dashboardUrl, { headers: { accept: "application/json" }, cache: "no-store" });
-    if (!response.ok) throw new Error(`Snapshot request failed with HTTP ${response.status}`);
-    renderSnapshot(await response.json());
+    renderSnapshot(await dataSource.snapshot(requestedDemoState));
   } catch (error) {
     renderServiceHealth({ status: "error", data: null, source: document.querySelector("#posture-source")?.textContent ?? "Uptime Kuma" });
     document.querySelector("#runtime-banner")?.setAttribute("hidden", "");
     setText("#runtime-mode", "DASHBOARD ERROR");
     setText("#runtime-summary", error instanceof Error ? error.message : "Snapshot request failed");
-    setText("#runtime-freshness", "retrying");
+    setText("#runtime-freshness", dataSource.isStatic ? "reload to retry" : "retrying");
   } finally {
     refreshInFlight = false;
   }
@@ -1238,7 +1236,7 @@ async function start() {
   setView("overview");
   await refreshDashboard();
   setInterval(updateClock, 1_000);
-  setInterval(refreshDashboard, 5_000);
+  if (!dataSource.isStatic) setInterval(refreshDashboard, 5_000);
 }
 
 void start();

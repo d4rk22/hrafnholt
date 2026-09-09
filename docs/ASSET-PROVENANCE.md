@@ -51,6 +51,13 @@ no private or production-derived content.
 
 ## Fonts
 
+The public landing page in `site/` uses the same local system-font approach.
+Its three-bar brand mark, layout, borders, and colors are original HTML/CSS
+authored on 2026-09-09 under Apache-2.0. It reuses the reviewed showcase overview
+and mountain-gate SVG; it adds no external image, font, icon, or artwork.
+The static export copies the reviewed dashboard assets and fictional posters
+without transformation. No third-party asset is downloaded during site build.
+
 Hrafnholt ships no font file, web-font CSS, or font download. `public/styles.css`
 uses only local system fallbacks:
 
