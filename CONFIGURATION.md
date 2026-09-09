@@ -19,9 +19,11 @@ device identifier, channel, credential name, or private location fallback.
 `demo` mode requires `collectors: []`, while `live` mode accepts an empty list
 or any valid subset. Demo mode never constructs a collector, resolves a
 credential, or calls a private endpoint. It loads one bounded synthetic base
-fixture and deterministically selects one of six review states:
+fixture and deterministically selects one of seven review states:
 
 - `healthy`: every normalized panel is current;
+- `showcase`: dense fictional activity, complete history charts, and original
+  local poster artwork for screenshots and exploration;
 - `empty`: every panel has an explicit no-data envelope;
 - `stale`: bounded last-good data is retained beyond its freshness window;
 - `degraded`: partial storage, protection, energy, and service-posture data

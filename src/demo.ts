@@ -1,4 +1,5 @@
 import type { DashboardSnapshot, DemoState, PanelKey } from "./contracts/dashboard.js";
+import { populateShowcase } from "./demo-showcase.js";
 
 const SYNTHETIC_NOW = "2030-01-15T12:00:00.000Z";
 const SYNTHETIC_STALE_SUCCESS = "2030-01-15T11:40:00.000Z";
@@ -35,6 +36,8 @@ export function createDemoSnapshot(healthyFixture: DashboardSnapshot, state: Dem
   snapshot.generatedAt = SYNTHETIC_NOW;
   snapshot.mode = "fixture";
   snapshot.demoState = state;
+
+  if (state === "showcase") populateShowcase(snapshot);
 
   if (state === "empty") {
     for (const key of PANEL_KEYS) {

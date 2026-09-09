@@ -3,6 +3,7 @@ import { z } from "zod";
 export const panelStatusSchema = z.enum(["ok", "stale", "error", "disabled"]);
 export const demoStateSchema = z.enum([
   "healthy",
+  "showcase",
   "empty",
   "stale",
   "degraded",
@@ -212,7 +213,7 @@ export const moviesDataSchema = z.object({
     addedAt: z.iso.datetime(),
     hasFile: z.boolean(),
     format: z.string().max(80),
-    posterUrl: z.string().regex(/^\/api\/posters\/radarr\/[a-z][a-z0-9-]{0,39}\/\d{1,10}$/).nullable(),
+    posterUrl: z.string().regex(/^(?:\/api\/posters\/radarr\/[a-z][a-z0-9-]{0,39}\/\d{1,10}|\/assets\/demo-posters\/(?:[1-9]|1[0-6])\.svg)$/).nullable(),
   })).max(16),
 });
 

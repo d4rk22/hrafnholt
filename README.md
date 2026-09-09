@@ -6,10 +6,12 @@ See what's playing on Plex, how your servers are doing, which services need
 attention, and what your equipment costs to run. Hrafnholt reads information
 from the services you connect; it does not change their settings or start jobs.
 
-![Hrafnholt demo showing network traffic, power use, service health, Plex activity, and server capacity](docs/images/dashboard-demo.png)
+[![Hrafnholt synthetic showcase showing network traffic, power use, Plex activity, and seven days of server capacity](docs/images/dashboard-demo.png)](docs/images/dashboard-showcase-full.png)
 
-*The screenshot uses made-up demo data. You can try the same dashboard without
-connecting any services.*
+*Entirely fictional showcase data, rendered by the real dashboard.
+[View the full dashboard](docs/images/dashboard-showcase-full.png), including
+media, containers, energy, and backups. The quick demo below uses a smaller
+sample dataset and needs no service connections.*
 
 ## Connect the services you already use
 

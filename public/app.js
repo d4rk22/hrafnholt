@@ -813,7 +813,8 @@ async function navigateEpisodes(days) {
   panel?.setAttribute("aria-busy", "true");
   buttons.forEach((button) => { button.disabled = true; });
   try {
-    const response = await fetch(`/api/v1/episodes?date=${encodeURIComponent(targetDate)}`, { headers: { accept: "application/json" }, cache: "no-store" });
+    const demoQuery = requestedDemoState ? `&demo=${encodeURIComponent(requestedDemoState)}` : "";
+    const response = await fetch(`/api/v1/episodes?date=${encodeURIComponent(targetDate)}${demoQuery}`, { headers: { accept: "application/json" }, cache: "no-store" });
     if (!response.ok) throw new Error(`Episode calendar request failed with HTTP ${response.status}`);
     renderEpisodes({ status: "ok", source: currentEpisodesPanel?.source ?? "Sonarr", message: null, data: await response.json() }, targetDate);
   } catch (error) {

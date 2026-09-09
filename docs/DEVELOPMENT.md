@@ -34,6 +34,38 @@ The example constructs no live collector and uses only synthetic data. Other
 review states include `/?demo=empty`, `/?demo=stale`, `/?demo=degraded`,
 `/?demo=collector-failure`, and `/?demo=privacy`.
 
+### Capture the showcase
+
+The full screenshot uses `examples/showcase.yml`, which selects `showcase`,
+four fictional viewers, a fictional home marker, and no collectors. From a
+source checkout containing the showcase change, after building, run:
+
+```bash
+HRAFNHOLT_CONFIG=./examples/showcase.yml npm start
+```
+
+In PowerShell, use `$env:HRAFNHOLT_CONFIG = "./examples/showcase.yml"` followed
+by `npm start`. Stop any other local dashboard using port 3000 first.
+The v0.1.15 images in the installation guide predate this optional scenario;
+their ordinary healthy demo still works as documented.
+
+Open <http://localhost:3000>, select **1W** in Capacity headroom, and use a
+1600-pixel-wide desktop viewport. Enable reduced motion, wait for all panels
+to finish rendering, and scroll through the media shelf so all 16 lazy-loaded
+posters appear before taking a full-page screenshot. The screenshot's clock
+is fixed at January 15, 2030. A 390-pixel viewport is used for phone QA.
+
+Only the app's rendered pixels are captured; no production response, browser
+storage, photograph, poster download, or production screenshot is an input.
+Verify the **SYNTHETIC DEMO · SHOWCASE** banner, zero external browser requests,
+no console errors, loaded images, and no horizontal page overflow before
+publishing. Record the final image hashes in the asset provenance inventory.
+
+The poster SVGs are original geometric artwork. Regenerate them with
+`node scripts/generate-demo-posters.mjs`; it requires no network or credentials.
+The existing `/?demo=showcase` selector also works in a demo runtime, using
+that runtime's presentation settings.
+
 Install and run the normal validation suite from this directory:
 
 ```bash
