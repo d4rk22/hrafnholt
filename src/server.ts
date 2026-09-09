@@ -71,9 +71,9 @@ export async function buildServer(
     (state) => demoMode
       ? createDemoSnapshot(fixture, state ?? document.demo.state)
       : addDerivedWatchlist(store.snapshot("live")),
-    async (date, signal) => {
+    async (date, signal, state) => {
       if (!demoMode && sonarrInstances.length) return collectSonarrDate(sonarrInstances, date, new Date(), signal);
-      const fixtureEpisodes = demoSnapshot?.panels.episodes.data;
+      const fixtureEpisodes = (demoMode && state ? createDemoSnapshot(fixture, state) : demoSnapshot)?.panels.episodes.data;
       return demoMode && fixtureEpisodes?.localDate === date ? fixtureEpisodes : { localDate: date, episodes: [] };
     },
     { allowDemoStateOverride: demoMode },

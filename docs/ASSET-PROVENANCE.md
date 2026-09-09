@@ -70,18 +70,60 @@ fixture, or the container filesystem. The operator is responsible for access
 and display rights for their media artwork. A missing poster leaves the card's
 first-party monogram fallback in place.
 
-`docs/images/dashboard-demo.png` (SHA-256 `3928e9a2df31f421aa1ddf15506a087711f887496b23f434d5020fcfbef54c3f`) is the
-README screenshot, captured on 2026-09-07 from the published v0.1.15 dashboard
-in healthy demo mode at a 1600 × 1080 viewport. It contains only the repository's
-synthetic fixture data, original HTML/CSS and the reviewed Natural Earth map.
-No live service, credential, production response, poster artwork, or personal
-screenshot was used. Browser checks confirmed fixture mode and zero external
-requests; the image was visually reviewed before publication. Redistribute
-under the project Apache-2.0 license, with the map rights noted above.
+## Synthetic showcase screenshots
 
-This explicitly published screenshot is documentation only, excluded from
-container build context by `docs`. Incidental browser evidence, reports,
-profiles, and caches remain ignored.
+Captured on 2026-09-09 from this repository with `examples/showcase.yml` at
+1600 pixels wide, reduced motion enabled, and the 1W capacity window selected.
+The full capture is 1600 × 4459; the 1600 × 1451 README overview ends after Capacity headroom.
+Both images are browser captures of the actual application, with no retouching.
+All activity, identities, home/viewer coordinates, infrastructure, media titles,
+usage and history are invented in `src/demo-showcase.ts` and the base fixture.
+No production screenshot, response, credential, poster download, or personal
+data was used. Original fictional poster artwork is inventoried below; the
+HTML/CSS and Natural Earth map have the rights recorded above.
+
+| Screenshot | SHA-256 |
+| --- | --- |
+| `docs/images/dashboard-demo.png` | `f708539a2d03b17409b685cea2edb6d273fcd15d756fc8c956be95237f19df8f` |
+| `docs/images/dashboard-showcase-full.png` | `ef39f1e8db54d472aade6af6ddaee97302e94f67d6634685a4d477bbac54cb36` |
+
+Both screenshots were visually reviewed before publication. Browser checks
+confirmed fixture mode, zero external requests or errors, all 16 posters loaded,
+working calendar navigation, and no page overflow at 1600 and 390 pixels.
+Redistribute under Apache-2.0 with the map notice above. The user explicitly
+approved these synthetic documentation assets. They are excluded from image
+build context by `docs`; incidental browser captures, profiles, and caches
+remain ignored. Reproduction instructions are in [Development](DEVELOPMENT.md#capture-the-showcase).
+
+## Fictional showcase poster artwork
+
+The 16 SVGs under `public/assets/demo-posters` are original geometric film
+posters authored on 2026-09-09 for invented titles. Their complete source is
+`scripts/generate-demo-posters.mjs`: circles, paths, gradients, and system-font
+text, with no external image, photograph, franchise artwork, font file,
+production library, or image-generation input. They are first-party work
+under Apache-2.0, approved for source and image redistribution with the project
+LICENSE and NOTICE; no third-party attribution is required. These static
+same-origin images are used only by the synthetic showcase data.
+
+| Asset | SHA-256 |
+| --- | --- |
+| `public/assets/demo-posters/1.svg` | `5669c8ec96b7ae55c7e0c2686135081797b5b5f20007fa2688f0f458be6e6196` |
+| `public/assets/demo-posters/2.svg` | `cc925d7d352a044eefc579cec5c91c9a65b9665b00627bd66dcf17b099593c71` |
+| `public/assets/demo-posters/3.svg` | `45bf2520b600d4f68897889c50fa2e96ecbdb8ab465d599f919a5b6d6b8d1f75` |
+| `public/assets/demo-posters/4.svg` | `95db7ed294080df2ff473956eaed4d1ca1751074b3a4a776cec2010b8670ced8` |
+| `public/assets/demo-posters/5.svg` | `26bc5bff7979d1ef138f2dca245f66b0b9852c892f40c0a91525aad0a408651b` |
+| `public/assets/demo-posters/6.svg` | `9a5471d426c4f1a0ca111feabc6b5a616a2bcf5a1b87446818a946b59950fc4f` |
+| `public/assets/demo-posters/7.svg` | `a8fea8e4d01b33dd79e92fe336eff65a3e17da4e51e87cc656e2679da36add8e` |
+| `public/assets/demo-posters/8.svg` | `9de1b4b5c186243dc7c3f4fcb2c9ba9204322d12d7c386834c82d9afd6e07c29` |
+| `public/assets/demo-posters/9.svg` | `3ea067dec8ddd3827096ba9fe6b77a8a6abb6c618ff8871729582a77d0670f38` |
+| `public/assets/demo-posters/10.svg` | `c1ef1c65f88e03224c78be45094fdf9073f5cd4357863582320cbb2a9c54e10a` |
+| `public/assets/demo-posters/11.svg` | `a4f5235ba5a3e321a124a0bedcd4c17c83b7810da1cf6d9fed1903b2a5929ae9` |
+| `public/assets/demo-posters/12.svg` | `11c5181a6df0fdd2c2abfc4c80b6f7b58507695bb1f5d5d47e20eab9ecb5d963` |
+| `public/assets/demo-posters/13.svg` | `ad40e4a9801fbf689184552081118dd71c3f90fb6aa28e9558b1864e2a718986` |
+| `public/assets/demo-posters/14.svg` | `cdd730fc80f0df17d10a5de01ecd48a6ed19559ee6e3916092084dc09c0c759a` |
+| `public/assets/demo-posters/15.svg` | `214f3fc570ab2562580cd1760d500063411c2801c6c5e2c466d4d297edffa830` |
+| `public/assets/demo-posters/16.svg` | `c486602ae303fbdd6dfc168c52a56fd69fc09b09364a7cc54beaba75d158d383` |
 
 ## Visual files removed from production dependencies
 

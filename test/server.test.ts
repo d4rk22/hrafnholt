@@ -91,7 +91,7 @@ test("fixture mode serves health and the versioned snapshot", async () => {
     home: null,
     privacy: { default_mode: "public", allow_private_toggle: false, aliases: [] },
     units: { temperature: "celsius" },
-    associations: { plex_host_proxmox_node: null },
+    associations: { plex_host_proxmox_node: "demo-node-a" },
   });
   assert.match(privacyMode.body, /export const PRIVACY_ALIASES/);
   assert.match(client.body, /from "\.\/privacy-mode\.js"/);

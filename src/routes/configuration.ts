@@ -13,7 +13,7 @@ export function publicConfiguration(config: HrafnholtConfigDocument) {
     privacy: config.presentation.privacy,
     units: config.presentation.units,
     associations: {
-      plex_host_proxmox_node: netdata?.proxmox_node ?? null,
+      plex_host_proxmox_node: config.mode === "demo" ? "demo-node-a" : netdata?.proxmox_node ?? null,
     },
   };
 }

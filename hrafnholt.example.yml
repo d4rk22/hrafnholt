@@ -2,7 +2,7 @@ schema_version: 1
 mode: demo
 
 demo:
-  # healthy | empty | stale | degraded | collector-failure | privacy
+  # healthy | showcase | empty | stale | degraded | collector-failure | privacy
   state: healthy
 
 server:

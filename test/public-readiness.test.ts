@@ -245,10 +245,13 @@ test("community health files and guarded SHA-pinned workflows are release-ready"
 
 test("every shipped first-party visual is inventoried and legacy gate assets are absent", async () => {
   const assets = (await readdir(join(dashboardRoot, "public", "assets"))).sort();
-  assert.deepEqual(assets, ["mountain-gate.svg", "storage-array.svg", "world-map.svg"]);
+  assert.deepEqual(assets, ["demo-posters", "mountain-gate.svg", "storage-array.svg", "world-map.svg"]);
 
   const provenance = await readFile(join(dashboardRoot, "docs", "ASSET-PROVENANCE.md"), "utf8");
   for (const asset of assets) assert.match(provenance, new RegExp(`public/assets/${asset.replace(".", "\\.")}`));
+  const posters = (await readdir(join(dashboardRoot, "public", "assets", "demo-posters"))).sort();
+  assert.deepEqual(posters, Array.from({ length: 16 }, (_, i) => `${i + 1}.svg`).sort());
+  for (const poster of posters) assert.ok(provenance.includes(`public/assets/demo-posters/${poster}`));
   assert.match(provenance, /Inline data-URI favicon/);
   assert.match(provenance, /Regional lower-48 plate and state lines/);
   assert.match(provenance, /Great Lakes layer/);

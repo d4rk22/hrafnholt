@@ -5,6 +5,17 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ## Unreleased
 
+### Added
+
+- Add a credential-free `showcase` demo with dense synthetic history, fictional
+  media and original poster art, consistent energy totals, and a full-page
+  documentation screenshot.
+
+### Fixed
+
+- Preserve the selected demo scenario when navigating the episode calendar.
+- Associate demo CPU telemetry with its synthetic compute node.
+
 ### Documentation
 
 - Add a demo screenshot, Docker-first quick start, and guided Compose examples
