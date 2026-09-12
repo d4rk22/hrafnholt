@@ -19,7 +19,7 @@
     "audit": "npm audit --audit-level=high",
     "build": "tsc -p tsconfig.json",
     "check": "npm run audit && npm run lint && npm test && npm run build && npm run check:browser",
-    "check:browser": "node --check public/app.js && node --check public/map-viewport.js && node --check public/privacy-mode.js && node --check public/service-health.js",
+    "check:browser": "node --check public/app.js && node --check public/map-viewport.js && node --check public/privacy-mode.js && node --check public/service-health.js && node --check public/rack-energy.js",
     "generate:world-map": "node scripts/generate-world-map.mjs",
     "lint": "tsc -p tsconfig.json --noEmit",
     "start": "node --env-file-if-exists=.env dist/server.js",

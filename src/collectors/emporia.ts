@@ -2,6 +2,7 @@ import { powerDataSchema, type PanelData } from "../contracts/dashboard.js";
 import { boundedText, fetchJson, finiteNumber, type Collector, type JsonRequest } from "./collector.js";
 
 type UnknownRecord = Record<string, unknown>;
+type BillingTerms = { tax_rate: number; fixed_monthly: number };
 function record(value: unknown): UnknownRecord {
   return value && typeof value === "object" ? value as UnknownRecord : {};
 }
@@ -20,7 +21,7 @@ function normalizeTopConsumers(input: unknown): unknown[] {
     .filter((circuit) => circuit.name.length > 0 && circuit.kwh > 0);
 }
 
-export function normalizeEmporia(input: unknown): PanelData<"power"> {
+export function normalizeEmporia(input: unknown, billing?: BillingTerms): PanelData<"power"> {
   const data = record(input);
   const topConsumers = normalizeTopConsumers(data.top_consumers);
   return powerDataSchema.parse({
@@ -42,6 +43,8 @@ export function normalizeEmporia(input: unknown): PanelData<"power"> {
     projectedCost: finiteNumber(data.projected_cost),
     projectedHouseCost: finiteNumber(data.house_projected_cost),
     rate: finiteNumber(data.rate),
+    taxRate: billing?.tax_rate ?? null,
+    fixedMonthly: billing?.fixed_monthly ?? null,
     rateLabel: boundedText(data.rate_label ?? "unknown", 80),
     daysInMonth: Math.min(31, Math.max(28, Math.trunc(finiteNumber(data.days_in_month, 30)))),
     serverPercentOfHouse: Math.min(100, Math.max(0, finiteNumber(data.pct_of_house))),
@@ -54,6 +57,7 @@ export function createEmporiaCollector(
   enabled: boolean,
   request: JsonRequest = fetchJson,
   allowInsecureTls = false,
+  billing?: BillingTerms,
 ): Collector<"power"> {
   return {
     name: "Emporia energy sidecar",
@@ -69,6 +73,6 @@ export function createEmporiaCollector(
       new URL("/energy", baseUrl).toString(),
       { signal, headers: { accept: "application/json" } },
       allowInsecureTls,
-    )),
+    ), billing),
   };
 }

@@ -131,6 +131,8 @@ export const powerDataSchema = z.object({
   projectedCost: z.number().nonnegative(),
   projectedHouseCost: z.number().nonnegative(),
   rate: z.number().nonnegative(),
+  taxRate: z.number().min(0).max(1).nullable().default(null),
+  fixedMonthly: z.number().nonnegative().nullable().default(null),
   rateLabel: z.string().max(80),
   daysInMonth: z.number().int().min(28).max(31),
   serverPercentOfHouse: z.number().min(0).max(100),

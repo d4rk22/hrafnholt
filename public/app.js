@@ -1,3 +1,4 @@
+import { estimateRackCost } from "./rack-energy.js";
 import {
   MAP_VIEWBOX,
   calculateActiveMapViewport,
@@ -964,7 +965,7 @@ function renderRackPower(panel, energyPanel) {
   const data = panel.data;
   const rate = energyPanel.data?.rate;
   const estimatedKwh = data ? data.rolling24hAverageWatts / 1_000 * 24 * 30 : null;
-  const estimatedCost = estimatedKwh !== null && rate !== undefined ? estimatedKwh * rate : null;
+  const estimatedCost = estimateRackCost(estimatedKwh, energyPanel.data);
   const capacityPercent = data ? Math.min(100, data.currentWatts / data.capacityWatts * 100) : 0;
   const currentKilowatts = data ? data.currentWatts / 1_000 : null;
 
@@ -979,7 +980,7 @@ function renderRackPower(panel, energyPanel) {
   const sampleCoverage = sampledMinutes >= 1_440
     ? "Estimate uses rolling 24h average"
     : `24h average warming up · ${sampledMinutes < 1 ? "<1m" : sampledMinutes < 60 ? `${number(sampledMinutes)}m` : `${number(sampledMinutes / 60, 1)}h`} sampled`;
-  setText("#rack-power-method", data ? sampleCoverage : "Rolling average unavailable");
+  setText("#rack-power-method", data ? `${sampleCoverage} · incl. tax + server-room fixed-fee share` : "Rolling average unavailable");
   const budget = document.querySelector("#rack-power-budget");
   budget?.style.setProperty("--fill", `${capacityPercent}%`);
   budget?.setAttribute("aria-valuenow", number(capacityPercent));

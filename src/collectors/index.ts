@@ -174,6 +174,7 @@ export function createCollectorRuntime(config: DashboardConfig): CollectorRuntim
       true,
       undefined,
       !instance.tls_verify,
+      config.document.energy?.rates,
     ), [instance]));
   }
   for (const instance of collectorsOfType(config, "ups")) {
