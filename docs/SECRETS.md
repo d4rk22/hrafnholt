@@ -66,3 +66,22 @@ Inject each secret only into the process that consumes it. In particular, the
 energy provider username and password belong in the sidecar, not the dashboard
 service. Upstream accounts and tokens should be read-only and limited to the
 smallest endpoint set the collector requires.
+
+## File permissions
+
+The published dashboard runs as UID/GID `1000:1000`; the energy service runs as
+`10001:10001`. A file-backed Compose secret keeps the underlying host file's
+permissions. Compose cannot fix a file's ownership by setting `uid`, `gid`, or
+`mode` in the secret declaration; those options are not implemented for a
+`file` source. See [Docker's secret reference](https://docs.docker.com/reference/compose-file/services/#secrets).
+
+On standard rootful Linux Docker, assign each secret to its service's numeric
+UID and use mode `0400`. Mount only that service's secrets. Docker Desktop uses
+its file-sharing layer; the container still needs to read the mounted file.
+Rootless Docker and NAS ACLs may map numeric users differently: grant the mapped
+service user read access, rather than making the file world-readable or running
+the application as root. Keep parent folders private on the host.
+
+The [guided Sonarr example](SETUP.md#option-b-sonarr--use-your-api-key) shows the
+complete config, mount, variable, and startup command together. Its files contain
+no secret value until an operator supplies one locally.

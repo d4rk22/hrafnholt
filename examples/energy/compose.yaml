@@ -1,0 +1,49 @@
+name: hrafnholt-energy
+services:
+  dashboard:
+    # Hrafnholt v0.1.15. Keep the digest when copying this example.
+    image: ghcr.io/d4rk22/hrafnholt-dashboard@sha256:8757ee31b122947a9a52efd2bf8837ee409b963e7bc7029e5c0dcf68c899f7a5
+    platform: linux/amd64
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - type: bind
+        source: ./hrafnholt.yml
+        target: /etc/hrafnholt/hrafnholt.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - state:/var/lib/hrafnholt
+  energy:
+    # Hrafnholt v0.1.15; only this service receives Emporia credentials.
+    image: ghcr.io/d4rk22/hrafnholt-energy@sha256:6ae1c3241a7db30864ec030cea570afc03f0f0e7e046a0a32e964bbfdf247a02
+    platform: linux/amd64
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      ENERGY_USERNAME_FILE: /run/secrets/energy_username
+      ENERGY_PASSWORD_FILE: /run/secrets/energy_password
+    secrets:
+      - energy_username
+      - energy_password
+    volumes:
+      - type: bind
+        source: ./hrafnholt.yml
+        target: /etc/hrafnholt/hrafnholt.yml
+        read_only: true
+        bind:
+          create_host_path: false
+    # No published port: the dashboard reaches http://energy:8080 internally.
+volumes:
+  state:
+secrets:
+  energy_username:
+    file: ./secrets/energy_username.txt
+  energy_password:
+    file: ./secrets/energy_password.txt

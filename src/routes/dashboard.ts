@@ -10,9 +10,9 @@ import {
 } from "../contracts/dashboard.js";
 
 export type SnapshotProvider = (demoState?: DemoState) => DashboardSnapshot;
-export type EpisodesProvider = (date: string, signal: AbortSignal) => Promise<PanelData<"episodes">>;
+export type EpisodesProvider = (date: string, signal: AbortSignal, demoState?: DemoState) => Promise<PanelData<"episodes">>;
 
-const episodesQuerySchema = z.object({ date: z.iso.date() }).strict();
+const episodesQuerySchema = z.object({ date: z.iso.date(), demo: demoStateSchema.optional() }).strict();
 const dashboardQuerySchema = z.object({ demo: demoStateSchema.optional() }).strict();
 
 export function registerDashboardRoutes(
@@ -34,11 +34,14 @@ export function registerDashboardRoutes(
     reply.header("cache-control", "no-store");
     const query = episodesQuerySchema.safeParse(request.query);
     if (!query.success) return reply.code(400).send({ error: "A valid date in YYYY-MM-DD format is required" });
+    if (query.data.demo && !options.allowDemoStateOverride) {
+      return reply.code(400).send({ error: "Demo state selection is available only in demo mode" });
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5_000);
     try {
-      return episodesDataSchema.parse(await episodes(query.data.date, controller.signal));
+      return episodesDataSchema.parse(await episodes(query.data.date, controller.signal, query.data.demo));
     } catch {
       return reply.code(502).send({ error: "Sonarr calendars are unavailable" });
     } finally {

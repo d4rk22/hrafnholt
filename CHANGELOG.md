@@ -11,10 +11,37 @@ All notable Hrafnholt changes will be recorded here. The project follows
   disk busy, and ARC hit ratio from one long-lived `reporting.realtime`
   websocket subscription (a separate, non-required `truenasIo` panel).
 - Pool scrub/resilver progress in the TrueNAS pools cell.
+- Publish a static project website and interactive showcase at hrafnholt.com,
+  with synthetic JSON generated at build time and no runtime backend.
+
+- Add a credential-free `showcase` demo with dense synthetic history, fictional
+  media and original poster art, consistent energy totals, and a full-page
+  documentation screenshot.
 
 ### Changed
 
 - Shorten CPU model labels by dropping trailing `N-Core Processor` text.
+
+### Fixed
+
+- Preserve the selected demo scenario when navigating the episode calendar.
+- Associate demo CPU telemetry with its synthetic compute node.
+
+### Documentation
+
+- Add a demo screenshot, Docker-first quick start, and guided Compose examples
+  for sample data, Uptime Kuma, Sonarr, and optional Emporia energy.
+- Clarify startup checks, secret-file permissions, network access, and updates.
+
+## [0.1.15] - 2026-09-07
+
+### Changed
+
+- Label Internet telemetry with its UniFi Network source and show purple upload
+  above the baseline with teal download below.
+- Use teal Rack draw bars and purple estimated costs in both energy ledgers.
+- Use purple for running verification and garbage collection states while
+  preserving amber warnings.
 
 ## [0.1.14] - 2026-09-06
 

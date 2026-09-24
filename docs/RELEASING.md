@@ -1,10 +1,11 @@
 # Release process
 
-Hrafnholt is licensed under Apache License 2.0 but remains a pre-release
-candidate. The presence of release automation does not make an artifact an
-official release. The first public source commit, repository visibility,
-registry publication, and stable-version declaration remain explicit
-maintainer decisions.
+Hrafnholt is licensed under Apache License 2.0. Releases from this public
+repository's guarded workflow, v0.1.8 and later, are official releases with
+publicly pullable images. The project is still in the 0.x series.
+
+For installation, use the [setup guide](SETUP.md). This page is for maintainers
+publishing releases and operators verifying image provenance.
 
 ## Release gates
 

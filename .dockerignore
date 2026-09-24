@@ -18,3 +18,12 @@ CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 SECURITY.md
 CHANGELOG.md
+
+# Setup files and documentation are not runtime image inputs.
+examples
+docs
+**/secrets
+.env
+.env.*
+site
+.site-dist

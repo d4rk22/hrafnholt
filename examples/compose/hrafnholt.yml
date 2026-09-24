@@ -1,0 +1,21 @@
+# Start here: this demo needs no accounts or API keys.
+schema_version: 1
+mode: demo
+server:
+  host: 0.0.0.0
+  port: 3000
+  log_level: info
+presentation:
+  branding:
+    title: Hrafnholt
+    subtitle: My home dashboard
+    home_label: Home
+  locale: en-US
+  timezone: UTC
+  home: null
+  privacy:
+    default_mode: public
+    allow_private_toggle: false
+  units:
+    temperature: celsius
+collectors: []
