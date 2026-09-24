@@ -62,6 +62,7 @@ export function normalizeCpuModel(value: unknown): string | null {
   const model = boundedText(value ?? "", 160)
     .replace(/\((?:R|TM)\)/gi, "")
     .replace(/\s+CPU(?:\s+@\s+.+)?$/i, "")
+    .replace(/\s+\d+-Core Processor\s*$/i, "")
     .replace(/\s+/g, " ")
     .trim();
   return model ? boundedText(model, 120) : null;

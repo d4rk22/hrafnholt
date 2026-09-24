@@ -1056,6 +1056,21 @@ test("TrueNAS storage uses root-dataset usable capacity without exposing pool na
   assert.equal(normalizeTrueNasStorage({ hostname: "demo-storage" }, [{ status: "DEGRADED", allocated: 60, free: 40 }]).health, "degraded");
 });
 
+test("TrueNAS storage reports the active or most recent pool scan", () => {
+  const finished = { function: "SCRUB", state: "FINISHED", end_time: { $date: 1_787_539_691_000 }, percentage: 100, errors: 0 };
+  const idle = normalizeTrueNasStorage({}, [{ name: "a", status: "ONLINE", allocated: 1, free: 1, scan: finished }]);
+  assert.deepEqual(idle.scan, { kind: "scrub", state: "finished", percent: 100, endedAt: "2026-08-24T02:48:11.000Z", errors: 0 });
+
+  const running = normalizeTrueNasStorage({}, [
+    { name: "a", status: "ONLINE", allocated: 1, free: 1, scan: finished },
+    { name: "b", status: "DEGRADED", allocated: 1, free: 1, scan: { function: "RESILVER", state: "SCANNING", end_time: null, percentage: 12.345, errors: 2 } },
+  ]);
+  assert.deepEqual(running.scan, { kind: "resilver", state: "running", percent: 12.345, endedAt: null, errors: 2 });
+
+  assert.equal(normalizeTrueNasStorage({}, [{ name: "a", status: "ONLINE", allocated: 1, free: 1, scan: null }]).scan, null);
+  assert.equal(normalizeTrueNasStorage({}, [{ name: "a", status: "ONLINE", allocated: 1, free: 1, scan: { function: "NONE", state: null } }]).scan, null);
+});
+
 test("TrueNAS storage collector uses read-only bearer requests for system, pool, and dataset data", async () => {
   const requests: Array<{ url: string; authorization: string | null }> = [];
   const collector = createTrueNasStorageCollector("https://truenas.example/", "concealed", async (url, init) => {

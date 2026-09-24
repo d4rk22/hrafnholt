@@ -96,6 +96,7 @@ export class CollectorScheduler {
     this.timers.clear();
     for (const controller of this.running.values()) controller.abort();
     this.running.clear();
+    for (const collector of this.collectors) collector.stop?.();
   }
 
   private schedule(collector: Collector, delayMs: number): void {

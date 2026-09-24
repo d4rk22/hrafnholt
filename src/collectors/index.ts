@@ -12,6 +12,7 @@ import { createRadarrCollector, type RadarrInstance } from "./radarr.js";
 import { createSabnzbdCollector, type SabInstance } from "./sabnzbd.js";
 import { createSonarrCollector, type SonarrInstance } from "./sonarr.js";
 import { createTracearrCollector } from "./tracearr.js";
+import { createTrueNasIoCollector } from "./truenas-io.js";
 import { createTrueNasStorageCollector } from "./truenas-storage.js";
 import { createUniFiCollector, createUniFiPduCollector } from "./unifi.js";
 import { createUniFiReadClient } from "./unifi-client.js";
@@ -174,6 +175,7 @@ export function createCollectorRuntime(config: DashboardConfig): CollectorRuntim
       true,
       undefined,
       !instance.tls_verify,
+      config.document.energy?.rates,
     ), [instance]));
   }
   for (const instance of collectorsOfType(config, "ups")) {
@@ -248,6 +250,13 @@ export function createCollectorRuntime(config: DashboardConfig): CollectorRuntim
       undefined,
       { fallbackName: instance.name, allowInsecureTls: !instance.tls_verify },
     ), [instance]));
+    // Realtime IO keeps its own 5s cadence; the instance poll interval governs capacity only.
+    const io = createTrueNasIoCollector(instance.url, secret(config, instance.api_key_ref), {
+      allowInsecureTls: !instance.tls_verify,
+    });
+    io.name = `${instance.panel.title ?? instance.name} IO`.slice(0, 120);
+    io.source = (instance.panel.title ?? instance.name).slice(0, 120);
+    collectors.push(io);
   }
   for (const instance of collectorsOfType(config, "backups")) {
     collectors.push(applyRuntimeOptions(createBackupCollector({

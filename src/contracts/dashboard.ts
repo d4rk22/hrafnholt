@@ -132,6 +132,8 @@ export const powerDataSchema = z.object({
   projectedCost: z.number().nonnegative(),
   projectedHouseCost: z.number().nonnegative(),
   rate: z.number().nonnegative(),
+  taxRate: z.number().min(0).max(1).nullable().default(null),
+  fixedMonthly: z.number().nonnegative().nullable().default(null),
   rateLabel: z.string().max(80),
   daysInMonth: z.number().int().min(28).max(31),
   serverPercentOfHouse: z.number().min(0).max(100),
@@ -257,6 +259,30 @@ export const truenasStorageDataSchema = z.object({
   totalBytes: z.number().nonnegative(),
   poolsOnline: z.number().int().nonnegative(),
   poolsTotal: z.number().int().nonnegative(),
+  scan: z.object({
+    kind: z.enum(["scrub", "resilver"]),
+    state: z.enum(["running", "finished", "canceled"]),
+    percent: z.number().min(0).max(100),
+    endedAt: z.iso.datetime().nullable(),
+    errors: z.number().int().nonnegative(),
+  }).nullable().default(null),
+});
+
+export const truenasIoDataSchema = z.object({
+  readBytesPerSecond: z.number().nonnegative(),
+  writeBytesPerSecond: z.number().nonnegative(),
+  iops: z.number().nonnegative(),
+  busyPercent: z.number().min(0).max(100),
+  arcHitPercent: z.number().min(0).max(100).nullable(),
+  history: z.object({
+    bucketSeconds: z.number().int().positive(),
+    points: z.array(z.object({
+      sampledAt: z.iso.datetime(),
+      readBytesPerSecond: z.number().nonnegative(),
+      writeBytesPerSecond: z.number().nonnegative(),
+      busyPercent: z.number().min(0).max(100),
+    })).max(180),
+  }),
 });
 
 export const backupsDataSchema = z.object({
@@ -346,6 +372,7 @@ export const dashboardSnapshotSchema = z.object({
     arcane: panelStateSchema(arcaneDataSchema),
     proxmox: panelStateSchema(proxmoxDataSchema),
     truenasStorage: panelStateSchema(truenasStorageDataSchema),
+    truenasIo: panelStateSchema(truenasIoDataSchema),
     backups: panelStateSchema(backupsDataSchema),
     servicePosture: panelStateSchema(servicePostureDataSchema),
     watchlist: panelStateSchema(watchlistDataSchema),

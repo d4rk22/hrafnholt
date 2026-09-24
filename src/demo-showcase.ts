@@ -133,7 +133,7 @@ export function populateShowcase(snapshot: DashboardSnapshot): void {
       { name: "Room cooling", kwh: 1.8 }, { name: "Refrigerator", kwh: 1.4 },
     ],
   });
-  p.truenasStorage.data = { serverName: "Demo storage", health: "online", usedBytes: 72 * 2 ** 40, availableBytes: 24 * 2 ** 40, totalBytes: 96 * 2 ** 40, poolsOnline: 2, poolsTotal: 2 };
+  p.truenasStorage.data = { serverName: "Demo storage", health: "online", usedBytes: 72 * 2 ** 40, availableBytes: 24 * 2 ** 40, totalBytes: 96 * 2 ** 40, poolsOnline: 2, poolsTotal: 2, scan: { kind: "scrub", state: "running", percent: 43, endedAt: null, errors: 0 } };
   p.backups.data!.pbs!.garbageCollectionResult = "running";
   p.backups.data!.pbs!.lastGarbageCollectionAt = iso(now - 12 * 60_000);
   p.watchlist.data!.items = [{ id: "showcase-maintenance", severity: "info", title: "Scheduled storage maintenance", detail: "Fictional example · no action is required.", ageLabel: "demo only" }];

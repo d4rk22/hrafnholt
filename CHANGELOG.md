@@ -7,12 +7,20 @@ All notable Hrafnholt changes will be recorded here. The project follows
 
 ### Added
 
+- TrueNAS storage panel IO strip: 15-minute read/write sparkline plus IOPS,
+  disk busy, and ARC hit ratio from one long-lived `reporting.realtime`
+  websocket subscription (a separate, non-required `truenasIo` panel).
+- Pool scrub/resilver progress in the TrueNAS pools cell.
 - Publish a static project website and interactive showcase at hrafnholt.com,
   with synthetic JSON generated at build time and no runtime backend.
 
 - Add a credential-free `showcase` demo with dense synthetic history, fictional
   media and original poster art, consistent energy totals, and a full-page
   documentation screenshot.
+
+### Changed
+
+- Shorten CPU model labels by dropping trailing `N-Core Processor` text.
 
 ### Fixed
 

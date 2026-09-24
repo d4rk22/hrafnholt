@@ -16,6 +16,7 @@ const PANEL_KEYS: PanelKey[] = [
   "arcane",
   "proxmox",
   "truenasStorage",
+  "truenasIo",
   "backups",
   "servicePosture",
   "watchlist",

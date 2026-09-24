@@ -406,10 +406,21 @@
             <div class="storage-free"><strong id="truenas-free">—</strong><span>free</span></div>
           </div>
           <div class="storage-rail" id="truenas-rail" role="meter" aria-label="TrueNAS capacity used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+          <div class="storage-io" id="truenas-io" data-state="connecting">
+            <div class="storage-io__trace">
+              <div class="storage-io__legend"><span class="storage-io__key storage-io__key--read">read <b id="truenas-io-read">—</b></span><span class="storage-io__key storage-io__key--write">write <b id="truenas-io-write">—</b></span><small id="truenas-io-window">connecting</small></div>
+              <svg class="storage-io__chart" id="truenas-io-chart" viewBox="0 0 300 40" preserveAspectRatio="none" role="img" aria-label="TrueNAS disk throughput waiting for samples"><line class="storage-io__baseline" x1="0" y1="39.5" x2="300" y2="39.5"></line><path class="storage-io__line storage-io__line--write" d=""></path><path class="storage-io__line storage-io__line--read" d=""></path></svg>
+            </div>
+            <dl class="storage-io__stats">
+              <div><dt>iops</dt><dd id="truenas-io-iops">—</dd></div>
+              <div id="truenas-io-busy-row"><dt>busy</dt><dd id="truenas-io-busy">—</dd></div>
+              <div><dt>arc hit</dt><dd id="truenas-io-arc">—</dd></div>
+            </dl>
+          </div>
           <div class="storage-summary">
             <div><strong id="truenas-total">—</strong><span>total</span></div>
             <div><strong id="truenas-percent">—</strong><span>used</span></div>
-            <div><strong id="truenas-pools">—</strong><span>pools online</span></div>
+            <div id="truenas-pools-cell"><strong id="truenas-pools">—</strong><span id="truenas-pools-label">pools online</span></div>
           </div>
         </section>
 
