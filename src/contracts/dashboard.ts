@@ -279,6 +279,7 @@ export const truenasIoDataSchema = z.object({
       sampledAt: z.iso.datetime(),
       readBytesPerSecond: z.number().nonnegative(),
       writeBytesPerSecond: z.number().nonnegative(),
+      busyPercent: z.number().min(0).max(100),
     })).max(180),
   }),
 });

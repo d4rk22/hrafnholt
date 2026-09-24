@@ -589,7 +589,7 @@ h2 { font-size: 24px; line-height: 1; }
 .storage-primary span, .storage-free span { display: block; margin-top: 8px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .11em; text-transform: uppercase; }
 .storage-rail { height: 10px; margin: 0 21px 17px; background: repeating-linear-gradient(90deg, var(--rail) 0 16px, transparent 16px 20px); }
 .storage-rail span { display: block; width: var(--fill); height: 100%; background: repeating-linear-gradient(90deg, var(--telemetry) 0 16px, transparent 16px 20px); filter: drop-shadow(0 0 7px rgba(var(--telemetry-rgb), .18)); }
-.storage-io { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; margin: 0 21px 13px; padding: 7px 12px 6px; border: 1px solid var(--line); }
+.storage-io { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; margin: 0 21px 13px; }
 .storage-io__legend { display: flex; align-items: baseline; gap: 14px; margin-bottom: 5px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
 .storage-io__legend b { margin-left: 3px; color: var(--frost); font-family: var(--display); font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 .storage-io__legend small { margin-left: auto; font-size: 9px; }
@@ -605,7 +605,8 @@ h2 { font-size: 24px; line-height: 1; }
 .storage-io__stats div { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; }
 .storage-io__stats dt { color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
 .storage-io__stats dd { min-width: 52px; margin: 0; font-family: var(--display); font-size: 15px; font-weight: 700; text-align: right; }
-.storage-io[data-state="stale"] { border-color: rgba(240,168,91,.34); }
+.storage-io[data-state="stale"] .storage-io__chart { opacity: .55; }
+#truenas-io-busy-row[data-level="seek-bound"] dt, #truenas-io-busy-row[data-level="seek-bound"] dd { color: var(--amber); }
 .storage-io[data-state="error"], .storage-io[data-state="disabled"] { opacity: .62; }
 #truenas-pools-cell[data-scan="running"] strong { color: var(--telemetry); }
 #truenas-pools-cell[data-scan="errors"] span { color: var(--amber); }

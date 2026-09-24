@@ -223,6 +223,7 @@ export function createTrueNasIoCollector(
           sampledAt: new Date(now).toISOString(),
           readBytesPerSecond: latest.readBytesPerSecond,
           writeBytesPerSecond: latest.writeBytesPerSecond,
+          busyPercent: latest.busyPercent,
         });
         if (history.length > HISTORY_POINTS) history.splice(0, history.length - HISTORY_POINTS);
       }

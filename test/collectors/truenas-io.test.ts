@@ -194,6 +194,7 @@ test("collector returns averaged IO with a bounded 15-minute history", async () 
       assert.equal(data.history.points.length, 180);
       assert.equal(data.history.bucketSeconds, 5);
       assert.equal(data.history.points.at(-1)!.readBytesPerSecond, data.readBytesPerSecond);
+      assert.equal(data.history.points.at(-1)!.busyPercent, data.busyPercent);
     }
   }
 

@@ -941,6 +941,19 @@ function compactCount(value) {
 // Read and write share one scale so their heights compare; the floor stops idle noise from filling the chart.
 const IO_CHART = { width: 300, top: 2, bottom: 39, floorBytes: 5e6 };
 
+// Seek-bound: disks stay busy while moving little data, i.e. random I/O at the HDD IOPS ceiling.
+// 500 MB/s suits a ~25-HDD pool, which streams well past 1 GB/s at 80% busy. Averaging 30s ignores ZFS txg bursts.
+const SEEK_BOUND = { busyPercent: 80, maxBytesPerSecond: 500e6, windowPoints: 6 };
+
+function seekBound(points) {
+  const recent = points.slice(-SEEK_BOUND.windowPoints).filter((point) => Number.isFinite(point.busyPercent));
+  if (recent.length < SEEK_BOUND.windowPoints) return null;
+  const mean = (pick) => recent.reduce((sum, point) => sum + pick(point), 0) / recent.length;
+  const busy = mean((point) => point.busyPercent);
+  const bytes = mean((point) => point.readBytesPerSecond + point.writeBytesPerSecond);
+  return busy >= SEEK_BOUND.busyPercent && bytes < SEEK_BOUND.maxBytesPerSecond ? { busy, bytes } : null;
+}
+
 function ioPath(points, pick, scale) {
   const span = Math.max(1, points.length - 1);
   return points.map((point, index) => {
@@ -961,6 +974,7 @@ function renderTrueNasIo(panel) {
   chart?.querySelector(".storage-io__line--write")?.setAttribute("d", ioPath(points, (point) => point.writeBytesPerSecond, scale));
   if (!data) {
     for (const id of ["read", "write", "iops", "busy", "arc"]) setText(`#truenas-io-${id}`, "—");
+    document.querySelector("#truenas-io-busy-row")?.setAttribute("data-level", "normal");
     setText("#truenas-io-window", panel.status === "disabled" ? "not configured" : panel.status === "error" ? "unavailable" : "connecting");
     chart?.setAttribute("aria-label", `TrueNAS disk throughput ${panel.message ?? "unavailable"}`);
     return;
@@ -971,6 +985,14 @@ function renderTrueNasIo(panel) {
   setText("#truenas-io-write", byteRate(data.writeBytesPerSecond));
   setText("#truenas-io-iops", compactCount(data.iops));
   setText("#truenas-io-busy", `${number(data.busyPercent)}%`);
+  const busyRow = document.querySelector("#truenas-io-busy-row");
+  const seek = seekBound(points);
+  if (busyRow) {
+    busyRow.dataset.level = seek ? "seek-bound" : "normal";
+    busyRow.title = seek
+      ? `Seek-bound: disks ${number(seek.busy)}% busy over 30s while moving only ${byteRate(seek.bytes)}. Random I/O is at the drives' limit, so other clients will see latency.`
+      : "Share of time the disks had I/O in flight, averaged across disks.";
+  }
   setText("#truenas-io-arc", data.arcHitPercent === null ? "—" : `${number(data.arcHitPercent, 1)}%`);
   setText("#truenas-io-window", coverageMinutes >= 14.9 ? "15 min" : `collecting · ${number(Math.max(1, coverageMinutes))} min`);
   chart?.setAttribute("aria-label", `TrueNAS disk throughput over the last ${number(coverageMinutes)} minutes. Current read ${byteRate(data.readBytesPerSecond)}, write ${byteRate(data.writeBytesPerSecond)}, peak ${byteRate(peak)}.`);
