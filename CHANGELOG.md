@@ -3,17 +3,17 @@
 All notable Hrafnholt changes will be recorded here. The project follows
 [Semantic Versioning](https://semver.org/) after its first public release.
 
-## Unreleased
+## [0.1.16] - 2026-09-24
 
 ### Added
 
 - TrueNAS storage panel IO strip: 15-minute read/write sparkline plus IOPS,
   disk busy, and ARC hit ratio from one long-lived `reporting.realtime`
   websocket subscription (a separate, non-required `truenasIo` panel).
+  High disk busy at low throughput is flagged amber as seek-bound.
 - Pool scrub/resilver progress in the TrueNAS pools cell.
 - Publish a static project website and interactive showcase at hrafnholt.com,
   with synthetic JSON generated at build time and no runtime backend.
-
 - Add a credential-free `showcase` demo with dense synthetic history, fictional
   media and original poster art, consistent energy totals, and a full-page
   documentation screenshot.
@@ -21,6 +21,11 @@ All notable Hrafnholt changes will be recorded here. The project follows
 ### Changed
 
 - Shorten CPU model labels by dropping trailing `N-Core Processor` text.
+- Include sales tax and the fixed server-room fee in PDU cost estimates.
+- Energy sidecar reuses one in-memory Emporia session and caches daily totals
+  for 15 minutes and monthly totals for one hour (invalidated at local
+  day/month boundaries), cutting nominal provider calls from about 180 to 65
+  per hour while keeping the roughly one-minute power cadence.
 
 ### Fixed
 

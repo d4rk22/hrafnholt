@@ -327,12 +327,23 @@ def collect_circuit_kwh_sample(
     circuits[key] = {"name": name.strip()[:TOP_CONSUMERS_NAME_LIMIT], "kwh": kwh}
 
 
+@dataclass
+class UsageSession:
+    """In-memory provider and validated totals; owned by one locked runtime."""
+
+    vue: Any = None
+    totals: dict[str, tuple[float, str, dict[str, Any]]] = field(default_factory=dict)
+
+
 def fetch_usage(
     config: EnergyConfig,
     provider_factory: Callable[[], Any] | None = None,
     scale_values: Mapping[str, str] | None = None,
+    *,
+    session: UsageSession | None = None,
 ) -> dict[str, Any]:
-    """Fetch configured channels at second/day/month scales."""
+    """Fetch live power; reuse daily/monthly totals for 15 minutes/one hour."""
+    session = session if session is not None else UsageSession()
     try:
         if provider_factory is None:
             from pyemvue import PyEmVue
@@ -347,8 +358,12 @@ def fetch_usage(
                 "MONTH": Scale.MONTH.value,
                 "KWH": Unit.KWH.value,
             }
-        vue = provider_factory()
-        vue.login(username=config.username, password=config.password)
+        if session.vue is None:
+            vue = provider_factory()
+            if vue.login(username=config.username, password=config.password) is False:
+                raise RuntimeError("Provider login rejected")
+            session.vue = vue
+        vue = session.vue
     except Exception:
         raise EnergyCollectionFailure(EnergyFailureStage.PROVIDER_SESSION) from None
 
@@ -383,7 +398,18 @@ def fetch_usage(
         ),
     )
 
+    current = datetime.now(ZoneInfo(config.timezone))
+    monotonic_now = time.monotonic()
     for scale_name, scale, retrieval_stage, selector_stage, numeric_stage in scales:
+        ttl = {"today": 900, "month": 3600}.get(scale_name, 0)
+        period = current.strftime("%Y-%m-%d" if scale_name == "today" else "%Y-%m")
+        cached = session.totals.get(scale_name)
+        if ttl and cached and cached[1] == period and monotonic_now - cached[0] < ttl:
+            result.update(cached[2])
+            if scale_name == "today":
+                circuits = cached[2]["circuits"]
+            continue
+        scale_result: dict[str, Any] = {}
         try:
             usage = vue.get_device_list_usage(
                 deviceGids=[config.device_id],
@@ -428,13 +454,18 @@ def fetch_usage(
                     except Exception:
                         raise EnergyCollectionFailure(numeric_stage) from None
                     suffix = "watts" if scale_name == "now" else scale_name
-                    result[f"{role}_{suffix}"] = value
+                    scale_result[f"{role}_{suffix}"] = value
             if not matched_device or observed_roles != expected_roles:
                 raise EnergyCollectionFailure(selector_stage)
         except EnergyCollectionFailure:
             raise
         except Exception:
             raise EnergyCollectionFailure(selector_stage) from None
+        if scale_name == "today":
+            scale_result["circuits"] = circuits
+        if ttl:
+            session.totals[scale_name] = (monotonic_now, period, scale_result)
+        result.update(scale_result)
     result["circuits"] = circuits
     return result
 
@@ -530,7 +561,7 @@ def cached_energy(
 
 def build_energy_runtime(
     config_loader: Callable[[], EnergyConfig] = load_energy_config,
-    usage_fetcher: Callable[[EnergyConfig], dict[str, Any]] = fetch_usage,
+    usage_fetcher: Callable[[EnergyConfig], dict[str, Any]] | None = None,
 ) -> EnergyRuntime:
     """Build the runtime without retaining configuration failure details."""
     try:
@@ -539,7 +570,12 @@ def build_energy_runtime(
             raise TypeError
     except Exception:
         return EnergyRuntime(None, None, EnergyFailureStage.CONFIGURATION_LOADING)
-    return EnergyRuntime(config, lambda: usage_fetcher(config))
+    session = UsageSession()
+    provider = (
+        (lambda: fetch_usage(config, session=session))
+        if usage_fetcher is None else (lambda: usage_fetcher(config))
+    )
+    return EnergyRuntime(config, provider)
 
 
 def energy_response(runtime: EnergyRuntime) -> tuple[int, dict[str, Any]]:
