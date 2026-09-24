@@ -580,7 +580,7 @@ h2 { font-size: 24px; line-height: 1; }
 .host-guests { color: var(--muted); font-size: 9px; text-align: right; }
 .host-guests strong { display: block; color: var(--frost); font-family: var(--display); font-size: 20px; }
 
-.storage-hero { display: grid; grid-template-columns: 132px minmax(0, 1.35fr) minmax(0, .85fr); align-items: center; gap: 19px; min-height: 156px; padding: 19px 21px 13px; }
+.storage-hero { display: grid; grid-template-columns: 132px minmax(0, 1.35fr) minmax(0, .85fr); align-items: center; gap: 19px; min-height: 140px; padding: 15px 21px 11px; }
 .mountain-gate { display: block; width: 132px; aspect-ratio: 246 / 191; object-fit: contain; filter: drop-shadow(0 0 8px rgba(var(--telemetry-rgb), .16)); }
 .storage-primary, .storage-free { min-width: 0; }
 .storage-primary strong, .storage-free strong { display: block; overflow: hidden; font-family: var(--display); font-weight: 700; line-height: .95; white-space: nowrap; }
@@ -589,6 +589,26 @@ h2 { font-size: 24px; line-height: 1; }
 .storage-primary span, .storage-free span { display: block; margin-top: 8px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .11em; text-transform: uppercase; }
 .storage-rail { height: 10px; margin: 0 21px 17px; background: repeating-linear-gradient(90deg, var(--rail) 0 16px, transparent 16px 20px); }
 .storage-rail span { display: block; width: var(--fill); height: 100%; background: repeating-linear-gradient(90deg, var(--telemetry) 0 16px, transparent 16px 20px); filter: drop-shadow(0 0 7px rgba(var(--telemetry-rgb), .18)); }
+.storage-io { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; margin: 0 21px 13px; padding: 7px 12px 6px; border: 1px solid var(--line); }
+.storage-io__legend { display: flex; align-items: baseline; gap: 14px; margin-bottom: 5px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.storage-io__legend b { margin-left: 3px; color: var(--frost); font-family: var(--display); font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+.storage-io__legend small { margin-left: auto; font-size: 9px; }
+.storage-io__key::before { content: ""; display: inline-block; width: 8px; height: 2px; margin: 0 6px 3px 0; vertical-align: middle; background: currentColor; }
+.storage-io__key--read::before { background: var(--telemetry); }
+.storage-io__key--write::before { background: var(--amber); }
+.storage-io__chart { display: block; width: 100%; height: 32px; overflow: visible; }
+.storage-io__line { fill: none; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.storage-io__line--read { stroke: var(--telemetry); }
+.storage-io__line--write { stroke: var(--amber); }
+.storage-io__baseline { stroke: rgba(191,215,221,.22); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.storage-io__stats { display: grid; gap: 2px; margin: 0; }
+.storage-io__stats div { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; }
+.storage-io__stats dt { color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.storage-io__stats dd { min-width: 52px; margin: 0; font-family: var(--display); font-size: 15px; font-weight: 700; text-align: right; }
+.storage-io[data-state="stale"] { border-color: rgba(240,168,91,.34); }
+.storage-io[data-state="error"], .storage-io[data-state="disabled"] { opacity: .62; }
+#truenas-pools-cell[data-scan="running"] strong { color: var(--telemetry); }
+#truenas-pools-cell[data-scan="errors"] span { color: var(--amber); }
 .storage-summary { display: grid; grid-template-columns: repeat(3, 1fr); min-height: 68px; border-top: 1px solid var(--line); }
 .storage-summary div { display: grid; place-content: center; text-align: center; }
 .storage-summary div + div { border-left: 1px solid var(--line); }
@@ -894,6 +914,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--telemetry); out
   .storage-primary strong { font-size: 29px; }
   .storage-free strong { font-size: 20px; }
   .storage-rail { margin-right: 15px; margin-left: 15px; }
+  .storage-io { gap: 10px; margin-right: 15px; margin-left: 15px; }
   .fleet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
   .fleet-cell { min-height: 58px; padding: 10px; }
   .fleet-cell strong { padding-right: 9px; overflow: visible; font-size: 9px; line-height: 1.2; overflow-wrap: anywhere; text-overflow: clip; white-space: normal; }

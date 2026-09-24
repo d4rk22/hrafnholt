@@ -882,6 +882,7 @@ function renderTrueNasStorage(panel) {
     setText("#truenas-total", "—");
     setText("#truenas-percent", "—");
     setText("#truenas-pools", "—");
+    setText("#truenas-pools-label", "pools online");
     const rail = document.querySelector("#truenas-rail");
     rail?.style.setProperty("--fill", "0%");
     rail?.setAttribute("aria-valuenow", "0");
@@ -895,11 +896,84 @@ function renderTrueNasStorage(panel) {
   setText("#truenas-free", tebibytes(data.availableBytes));
   setText("#truenas-total", tebibytes(data.totalBytes));
   setText("#truenas-percent", percent(usedPercent));
-  setText("#truenas-pools", `${number(data.poolsOnline)} / ${number(data.poolsTotal)}`);
+  renderPoolScan(data);
   const rail = document.querySelector("#truenas-rail");
   rail?.style.setProperty("--fill", `${Math.min(100, Math.max(0, usedPercent))}%`);
   rail?.setAttribute("aria-valuenow", number(usedPercent));
   rail?.setAttribute("aria-label", `${number(usedPercent)} percent of TrueNAS capacity used`);
+}
+
+const SCAN_LABELS = { scrub: "Scrub", resilver: "Resilver" };
+
+function renderPoolScan(data) {
+  const pools = `${number(data.poolsOnline)} / ${number(data.poolsTotal)}`;
+  const scan = data.scan;
+  const cell = document.querySelector("#truenas-pools-cell");
+  if (scan?.state === "running") {
+    setText("#truenas-pools", `${SCAN_LABELS[scan.kind]} ${number(scan.percent)}%`);
+    setText("#truenas-pools-label", `${pools} pools online`);
+  } else {
+    setText("#truenas-pools", pools);
+    setText("#truenas-pools-label", scan?.errors ? `pools online · ${number(scan.errors)} scan errors` : "pools online");
+  }
+  if (cell) {
+    cell.dataset.scan = scan ? (scan.errors ? "errors" : scan.state) : "none";
+    cell.title = !scan
+      ? "No scrub or resilver recorded"
+      : scan.state === "running"
+        ? `${SCAN_LABELS[scan.kind]} in progress, ${number(scan.percent, 1)}% complete`
+        : `Last ${scan.kind} ${scan.state}${scan.endedAt ? ` ${new Date(scan.endedAt).toLocaleString(presentation.locale)}` : ""}, ${number(scan.errors)} errors`;
+  }
+}
+
+function byteRate(bytesPerSecond) {
+  const value = Math.max(0, Number(bytesPerSecond ?? 0));
+  if (value >= 1e9) return `${number(value / 1e9, 2)} GB/s`;
+  if (value >= 1e6) return `${number(value / 1e6, value >= 1e7 ? 0 : 1)} MB/s`;
+  return `${number(value / 1e3, 0)} kB/s`;
+}
+
+function compactCount(value) {
+  const count = Math.max(0, Number(value ?? 0));
+  return count >= 1_000 ? `${number(count / 1_000, 1)}k` : number(count);
+}
+
+// Read and write share one scale so their heights compare; the floor stops idle noise from filling the chart.
+const IO_CHART = { width: 300, top: 2, bottom: 39, floorBytes: 5e6 };
+
+function ioPath(points, pick, scale) {
+  const span = Math.max(1, points.length - 1);
+  return points.map((point, index) => {
+    const x = points.length === 1 ? IO_CHART.width : index / span * IO_CHART.width;
+    const y = IO_CHART.bottom - Math.min(1, pick(point) / scale) * (IO_CHART.bottom - IO_CHART.top);
+    return `${index ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+}
+
+function renderTrueNasIo(panel) {
+  setPanelState("#truenas-io", panel);
+  const data = panel.data;
+  const chart = document.querySelector("#truenas-io-chart");
+  const points = (data?.history?.points ?? []).filter((point) => point
+    && Number.isFinite(point.readBytesPerSecond) && Number.isFinite(point.writeBytesPerSecond));
+  const scale = Math.max(IO_CHART.floorBytes, ...points.map((point) => Math.max(point.readBytesPerSecond, point.writeBytesPerSecond)));
+  chart?.querySelector(".storage-io__line--read")?.setAttribute("d", ioPath(points, (point) => point.readBytesPerSecond, scale));
+  chart?.querySelector(".storage-io__line--write")?.setAttribute("d", ioPath(points, (point) => point.writeBytesPerSecond, scale));
+  if (!data) {
+    for (const id of ["read", "write", "iops", "busy", "arc"]) setText(`#truenas-io-${id}`, "—");
+    setText("#truenas-io-window", panel.status === "disabled" ? "not configured" : panel.status === "error" ? "unavailable" : "connecting");
+    chart?.setAttribute("aria-label", `TrueNAS disk throughput ${panel.message ?? "unavailable"}`);
+    return;
+  }
+  const coverageMinutes = points.length * data.history.bucketSeconds / 60;
+  const peak = Math.max(0, ...points.map((point) => Math.max(point.readBytesPerSecond, point.writeBytesPerSecond)));
+  setText("#truenas-io-read", byteRate(data.readBytesPerSecond));
+  setText("#truenas-io-write", byteRate(data.writeBytesPerSecond));
+  setText("#truenas-io-iops", compactCount(data.iops));
+  setText("#truenas-io-busy", `${number(data.busyPercent)}%`);
+  setText("#truenas-io-arc", data.arcHitPercent === null ? "—" : `${number(data.arcHitPercent, 1)}%`);
+  setText("#truenas-io-window", coverageMinutes >= 14.9 ? "15 min" : `collecting · ${number(Math.max(1, coverageMinutes))} min`);
+  chart?.setAttribute("aria-label", `TrueNAS disk throughput over the last ${number(coverageMinutes)} minutes. Current read ${byteRate(data.readBytesPerSecond)}, write ${byteRate(data.writeBytesPerSecond)}, peak ${byteRate(peak)}.`);
 }
 
 function renderArcane(panel) {
@@ -1106,6 +1180,7 @@ function renderSnapshot(snapshot) {
   renderMovies(snapshot.panels.movies);
   renderProxmox(snapshot.panels.proxmox);
   renderTrueNasStorage(snapshot.panels.truenasStorage);
+  if (snapshot.panels.truenasIo) renderTrueNasIo(snapshot.panels.truenasIo);
   renderArcane(snapshot.panels.arcane);
   renderEnergy(snapshot.panels.power);
   renderRackPower(snapshot.panels.rackPower, snapshot.panels.power);

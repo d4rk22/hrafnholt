@@ -18,6 +18,33 @@ function propertyBytes(value: unknown): number {
   return Math.max(0, finiteNumber(property.parsed ?? property.rawvalue ?? value));
 }
 
+type PoolScan = NonNullable<PanelData<"truenasStorage">["scan"]>;
+const SCAN_KINDS: Record<string, PoolScan["kind"]> = { SCRUB: "scrub", RESILVER: "resilver" };
+const SCAN_STATES: Record<string, PoolScan["state"]> = { SCANNING: "running", FINISHED: "finished", CANCELED: "canceled" };
+
+function poolScan(value: unknown): PoolScan | null {
+  const scan = record(value);
+  const kind = SCAN_KINDS[String(scan.function ?? "").toUpperCase()];
+  const state = SCAN_STATES[String(scan.state ?? "").toUpperCase()];
+  if (!kind || !state) return null;
+  const endedMs = finiteNumber(record(scan.end_time).$date, Number.NaN);
+  return {
+    kind,
+    state,
+    percent: Math.min(100, Math.max(0, finiteNumber(scan.percentage))),
+    endedAt: Number.isFinite(endedMs) ? new Date(endedMs).toISOString() : null,
+    errors: Math.max(0, Math.trunc(finiteNumber(scan.errors))),
+  };
+}
+
+// A running scan wins (resilver before scrub); otherwise the most recently ended one.
+function headlineScan(pools: UnknownRecord[]): PoolScan | null {
+  const scans = pools.map((pool) => poolScan(pool.scan)).filter((scan): scan is PoolScan => scan !== null);
+  const running = scans.filter((scan) => scan.state === "running");
+  if (running.length) return running.find((scan) => scan.kind === "resilver") ?? running[0]!;
+  return scans.sort((a, b) => (b.endedAt ?? "").localeCompare(a.endedAt ?? ""))[0] ?? null;
+}
+
 export function normalizeTrueNasStorage(
   systemValue: unknown,
   poolsValue: unknown,
@@ -59,6 +86,7 @@ export function normalizeTrueNasStorage(
     totalBytes: usedBytes + availableBytes,
     poolsOnline: online,
     poolsTotal: pools.length,
+    scan: headlineScan(pools),
   });
 }
 

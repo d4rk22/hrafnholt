@@ -18,6 +18,8 @@ export type Collector<K extends PanelKey = PanelKey> = {
   enabled: boolean;
   schema: z.ZodType<PanelData<K>>;
   collect: (context: CollectorContext) => Promise<PanelData<K>>;
+  /** Releases long-lived resources (e.g. a websocket) when the scheduler stops. */
+  stop?: () => void;
 };
 
 export type HttpError = Error & { statusCode?: number };
