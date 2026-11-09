@@ -269,6 +269,13 @@ export function createCollectorRuntime(config: DashboardConfig): CollectorRuntim
         },
       } : {}),
       allowInsecureTls: !instance.tls_verify,
+      statusFiles: instance.status_files.map((file) => ({
+        id: file.id,
+        name: file.name,
+        detail: file.detail,
+        path: file.path,
+        maxAgeHours: file.max_age_hours,
+      })),
     }), [instance]));
   }
   for (const instance of collectorsOfType(config, "uptime_kuma")) {

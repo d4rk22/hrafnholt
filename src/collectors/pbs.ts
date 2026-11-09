@@ -1,6 +1,7 @@
 import { backupsDataSchema, type PanelData } from "../contracts/dashboard.js";
 import { boundedText, fetchJson, type Collector, type JsonRequest } from "./collector.js";
 import { collectPveBackupJobs } from "./proxmox.js";
+import { collectStatusFileJobs, type BackupStatusFileConfig } from "./status-file.js";
 
 type UnknownRecord = Record<string, unknown>;
 type BackupJob = PanelData<"backups">["jobs"][number];
@@ -439,6 +440,7 @@ export function createBackupCollector(
       token: string;
     };
     allowInsecureTls?: boolean;
+    statusFiles?: BackupStatusFileConfig[];
   },
   request: JsonRequest = fetchJson,
 ): Collector<"backups"> {
@@ -453,12 +455,13 @@ export function createBackupCollector(
     required: true,
     enabled: Boolean(options.pveUrl && options.pveToken),
     schema: backupsDataSchema,
-    collect: async ({ signal }) => {
+    collect: async ({ signal, now }) => {
+      const statusFileJobs = await collectStatusFileJobs(options.statusFiles ?? [], signal, now);
       const pvePromise = collectPveBackupJobs(options.pveUrl, options.pveToken, signal, configuredRequest);
       if (!options.pbs) {
         const [pve] = await Promise.allSettled([pvePromise]);
         return backupsDataSchema.parse({
-          jobs: pve.status === "fulfilled" ? pve.value : [{
+          jobs: [...(pve.status === "fulfilled" ? pve.value : [{
             id: "pve-backups",
             name: "Proxmox guest backup run",
             detail: "scheduled backup tasks",
@@ -468,7 +471,7 @@ export function createBackupCollector(
             durationSeconds: null,
             transferredBytes: null,
             message: "PVE backup task history unavailable",
-          }],
+          }]), ...statusFileJobs],
         });
       }
 
@@ -486,7 +489,7 @@ export function createBackupCollector(
         : undefined;
       return backupsDataSchema.parse({
         ...(pbs ? { pbs } : {}),
-        jobs: mergeGuestBackupJobs(pveJobs, pbsJobs),
+        jobs: [...mergeGuestBackupJobs(pveJobs, pbsJobs), ...statusFileJobs],
       });
     },
   };

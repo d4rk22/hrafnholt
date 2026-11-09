@@ -21,7 +21,7 @@ settings.
 | `arcane` | Read-only container environment summary | `url` | `api_key_ref` | No |
 | `proxmox` | Cluster resources and selected storage | `url`, `storage_id`; optional `exclude_nodes`, `node_roles` | `api_token_ref` | No |
 | `truenas` | System identity, aggregate storage capacity, pool scrub/resilver status, and realtime disk IO (websocket `reporting.realtime`) | `url` | `api_key_ref` | No |
-| `backups` | PVE task history and optional PBS protection state | `pve.url`; optional `pbs.url` | `pve.api_token_ref`; optional `pbs.api_token_ref` | No |
+| `backups` | PVE task history and optional PBS protection state | `pve.url`; optional `pbs.url`, `status_files` | `pve.api_token_ref`; optional `pbs.api_token_ref` | No |
 | `uptime_kuma` | Public status-page posture | `url`, `status_page_slug` | None | No |
 
 Sonarr, Radarr, SABnzbd, and qBittorrent accept arbitrary named instances. The

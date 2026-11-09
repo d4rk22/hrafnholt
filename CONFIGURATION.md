@@ -83,11 +83,44 @@ The type-specific required fields are:
 | `arcane` | `url`, `api_key_ref` | No |
 | `proxmox` | `url`, `api_token_ref`, `storage_id`; optional `exclude_nodes` and `node_roles` | No |
 | `truenas` | `url`, `api_key_ref` | No |
-| `backups` | `pve.url`, `pve.api_token_ref`; optional PBS URL/token reference | No |
+| `backups` | `pve.url`, `pve.api_token_ref`; optional PBS URL/token reference and `status_files` | No |
 | `uptime_kuma` | `url`, `status_page_slug` | No |
 
 Every row also requires the common `type`, `id`, and `name` fields. An omitted
 row is disabled; it does not cause Hrafnholt to probe a default endpoint.
+
+A `backups` row may list up to eight `status_files` for backup jobs that
+Hrafnholt cannot query directly. Each entry has a unique lowercase `id`, a
+`name` and `detail` (up to 120 characters), an absolute `path` to a JSON file
+readable inside the container (bind-mount it read-only), and an optional
+`max_age_hours` (default 26). Each file becomes one row after the Proxmox rows:
+
+```yaml
+status_files:
+  - id: offsite-mirror
+    name: Nightly mirror
+    detail: File mirror
+    path: /srv/status/mirror-last-run.json
+    max_age_hours: 26
+```
+
+The file is at most 64 KiB and the external job writes it (atomically) as:
+
+```json
+{"schema": 1, "state": "success", "started_at": "2026-01-01T02:00:00-06:00",
+ "finished_at": "2026-01-01T02:14:00-06:00", "duration_seconds": 840,
+ "datasets": 12, "files": 48210, "bytes": 1073741824, "deleted": 0,
+ "monthly": false, "message": null}
+```
+
+`state` is `running`, `success`, or `failed`; `finished_at`, the counters, and
+`message` may be `null`; unknown extra keys are ignored. A `failed` file shows
+its `message` (200 characters at most). A `success` older than `max_age_hours`
+(measured from `finished_at`, else `started_at`), or a `running` file older
+than that, shows a warning. A missing file shows as not configured; an
+unreadable, oversized, or invalid file shows as unavailable. File contents and
+parse errors are never displayed, and a bad status file never affects the
+Proxmox rows.
 
 Netdata chart IDs are deployment-specific and therefore have no compiled
 fallback. Its `metrics` mapping requires selectors for GPU utilization,
