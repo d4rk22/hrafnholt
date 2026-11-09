@@ -3,7 +3,7 @@
 All notable Hrafnholt changes will be recorded here. The project follows
 [Semantic Versioning](https://semver.org/) after its first public release.
 
-## [Unreleased]
+## [0.1.17] - 2026-11-09
 
 ### Added
 
