@@ -56,6 +56,18 @@ collectors: []
 #     url: https://downloads.example
 #     username_ref: MEDIA_USERNAME
 #     password_ref: MEDIA_PASSWORD
+#   - type: backups
+#     id: backups
+#     name: Backups
+#     pve: {url: https://pve.example, api_token_ref: PVE_BACKUP_TOKEN}
+#     # Optional: show extra backup jobs published as a local JSON status file
+#     # (mount it read-only into the container). See CONFIGURATION.md.
+#     status_files:
+#       - id: offsite-mirror
+#         name: Nightly mirror
+#         detail: File mirror
+#         path: /srv/status/mirror-last-run.json
+#         max_age_hours: 26
 
 # The energy sidecar reads only this section and resolves only these two
 # service-scoped secret references. It is not started by dashboard demo mode.

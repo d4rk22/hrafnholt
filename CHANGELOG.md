@@ -3,6 +3,14 @@
 All notable Hrafnholt changes will be recorded here. The project follows
 [Semantic Versioning](https://semver.org/) after its first public release.
 
+## [Unreleased]
+
+### Added
+
+- Backups panel: optional `status_files` on the `backups` collector show extra
+  backup jobs published as a local JSON status file, with staleness and
+  failure reporting that never affects the Proxmox rows.
+
 ## [0.1.16] - 2026-09-24
 
 ### Added

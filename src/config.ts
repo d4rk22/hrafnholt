@@ -27,6 +27,13 @@ const httpUrlSchema = z.url().max(2_048).refine((value) => {
     && url.hash === "";
 }, "must be an http or https base URL without credentials, query, or fragment");
 const absolutePathSchema = z.string().min(1).max(512).startsWith("/", "must be an absolute path");
+const backupStatusFileSchema = z.object({
+  id: z.string().min(1).max(60).regex(/^[a-z][a-z0-9-]*$/, "must use lowercase letters, numbers, and hyphens"),
+  name: z.string().trim().min(1).max(120),
+  detail: z.string().trim().min(1).max(120),
+  path: absolutePathSchema.refine((value) => !value.includes("\0"), "must not contain NUL"),
+  max_age_hours: z.number().positive().max(8_760).default(26),
+}).strict();
 const hostnameSchema = z.string().trim().min(1).max(253).regex(/^[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?$/);
 const countryCodeSchema = z.string().regex(/^[A-Z]{2}$/);
 const localeSchema = z.string().trim().min(2).max(35).refine((value) => {
@@ -186,6 +193,10 @@ const collectorSchemas = [
       url: httpUrlSchema,
       api_token_ref: secretReferenceSchema,
     }).strict().optional(),
+    status_files: z.array(backupStatusFileSchema).max(8).default([]).refine(
+      (files) => new Set(files.map((file) => file.id)).size === files.length,
+      "status_files ids must be unique",
+    ),
   }).strict(),
   z.object({
     ...httpCollectorCommon,
