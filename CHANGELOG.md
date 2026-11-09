@@ -11,6 +11,11 @@ All notable Hrafnholt changes will be recorded here. The project follows
   backup jobs published as a local JSON status file, with staleness and
   failure reporting that never affects the Proxmox rows.
 
+### Security
+
+- Update fastify 5.12.8, @fastify/static 10.1.10, undici 8.12.4, zod 4.6.7 and
+  transitive brace-expansion/fast-uri to clear `npm audit` advisories.
+
 ## [0.1.16] - 2026-09-24
 
 ### Added
